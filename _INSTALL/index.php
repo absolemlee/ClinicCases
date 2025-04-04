@@ -98,16 +98,7 @@
 
 		echo "<p class='good'>The config file is writable.  Good.</p>";
 
-		if (get_magic_quotes_gpc())
-	    {
 
-		    die("<p class='config_error'>Your server's installation of php has
-            <a target = '_new'  href = 'http://php.net/manual/en/security.magicquotes.php'>magic
-            quotes</a> turned on. ClinicCases will not run with magic quotes
-            enabled.  Please contact your hosting provider to learn how to turn
-            them off.</p>");
-
-		}
 
 		echo "<p class='good'>The config file is writable.  Good.</p>";
 
