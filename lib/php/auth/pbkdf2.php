@@ -34,4 +34,3 @@ function pbkdf2( $p, $s, $c, $kl, $a = 'sha256' ) {
 
     # Return derived key of correct length
     return substr($dk, 0, $kl);
-}
