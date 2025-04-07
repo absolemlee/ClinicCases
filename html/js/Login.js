@@ -4,7 +4,7 @@ $(document).ready(function() {
     {
         $.post("lib/php/auth/login.php", $("#getin").serialize(), function(data) {
 
-            var response = $.parseJSON(data);
+            var response = data;
             if (response.login == 'true')
             {
                 $("#status").html(response.message);
