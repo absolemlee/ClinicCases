@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { auth } from '@/auth';
+import { createUserCreationJournal } from '@/lib/systemJournal';
 
 // GET /api/users - List all users
 export async function GET(request: Request) {
@@ -59,6 +61,10 @@ export async function GET(request: Request) {
 // POST /api/users - Create new user
 export async function POST(request: Request) {
   try {
+    // Get the current user (creator)
+    const session = await auth();
+    const creatorUsername = session?.user?.username || 'system';
+
     const body = await request.json();
     const {
       firstName,
@@ -105,6 +111,20 @@ export async function POST(request: Request) {
         forceNewPassword: 1,
       },
     });
+
+    // Create automatic system journal entry for the new user
+    try {
+      await createUserCreationJournal(username, creatorUsername, {
+        firstName,
+        lastName,
+        email,
+        group: grp,
+      });
+      console.log(`✓ System journal created for new user: ${username}`);
+    } catch (journalError) {
+      // Don't fail user creation if journal fails, just log it
+      console.error('Failed to create system journal:', journalError);
+    }
 
     return NextResponse.json({
       success: true,

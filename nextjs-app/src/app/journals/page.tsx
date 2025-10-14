@@ -141,16 +141,31 @@ export default function JournalsPage() {
 
       {/* Journals List */}
       {!loading && !error && journals.length === 0 && (
-        <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-12 text-center">
-          <p className="text-slate-400">No journals found</p>
-          {permissions.writesJournals && filter === 'unread' && (
-            <Link
-              href="/journals/new"
-              className="mt-4 inline-block text-brand-400 hover:text-brand-300"
-            >
-              Create your first journal →
-            </Link>
-          )}
+        <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-8 sm:p-12 text-center">
+          <div className="max-w-md mx-auto">
+            <div className="text-4xl mb-4">📔</div>
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
+              {filter === 'unread' && 'No Unread Journals'}
+              {filter === 'read' && 'No Read Journals'}
+              {filter === 'archived' && 'No Archived Journals'}
+              {filter === 'all' && 'No Journals Yet'}
+            </h3>
+            <p className="text-sm sm:text-base text-slate-400 mb-6">
+              {filter === 'unread' && 'You\'re all caught up! Check back later for new entries.'}
+              {filter === 'read' && 'No journals have been marked as read yet.'}
+              {filter === 'archived' && 'No journals have been archived yet.'}
+              {filter === 'all' && permissions.writesJournals && 'Start documenting your work and learning by creating your first journal entry.'}
+              {filter === 'all' && !permissions.writesJournals && 'No journal entries are available yet.'}
+            </p>
+            {permissions.writesJournals && (filter === 'unread' || filter === 'all') && (
+              <Link
+                href="/journals/new"
+                className="inline-block px-6 py-3 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors text-sm sm:text-base font-medium"
+              >
+                ✏️ Create Your First Journal Entry
+              </Link>
+            )}
+          </div>
         </div>
       )}
 

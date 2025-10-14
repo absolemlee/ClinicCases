@@ -129,12 +129,71 @@ async function main() {
 
   console.log('✓ Sample case created');
 
+  // Create system journal for admin user
+  console.log('Creating system journals...');
+  const existingJournals = await prisma.journal.count({
+    where: { username: 'admin' },
+  });
+
+  if (existingJournals === 0) {
+    await prisma.journal.create({
+      data: {
+        username: 'admin',
+        reader: 'admin',
+        text: `[System Generated Entry]
+
+Account Information
+
+Welcome to ClinicCases, Admin User!
+
+This is your personal journal where you should document your work, learning, and professional development.
+
+Account Details:
+- Username: admin
+- Full Name: Admin User
+- Email: admin@cliniccases.test
+- Group: admin
+- Role: System Administrator
+
+📝 Journal Guidelines:
+
+Use this journal to document:
+• Daily activities and case work
+• Client interactions and meetings
+• Research and analysis
+• Learning objectives and insights
+• Challenges and solutions
+• System administration tasks
+
+💡 Best Practices:
+• Write regular entries (at least weekly)
+• Be specific and detailed in your descriptions
+• Include dates and case references when relevant
+• Reflect on what you've learned
+• Document system changes and updates
+
+As an administrator, your journal entries may serve as system logs and documentation for future reference.
+
+Start documenting your journey today by creating your first journal entry!`,
+        dateAdded: new Date(),
+        archived: null,
+        read: null,
+        commented: null,
+        comments: null,
+      },
+    });
+    console.log('✓ System journal created for admin user');
+  } else {
+    console.log('⏭️  Admin user already has journals, skipping...');
+  }
+
   console.log('');
   console.log('✅ Seed complete!');
   console.log('');
   console.log('Sample data created:');
   console.log(`  - Admin user: admin (password: admin)`);
   console.log(`  - Sample case: ${sampleCase.caseNumber} - ${sampleCase.firstName} ${sampleCase.lastName}`);
+  console.log(`  - System journal for admin user`);
   console.log('');
   console.log('Next steps:');
   console.log('  - Run "npm run dev" to start the development server');
