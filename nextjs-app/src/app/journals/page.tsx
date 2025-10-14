@@ -1,30 +1,221 @@
-import { LegacyMappingCallout } from "@/components/shared/LegacyMappingCallout";
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Journal {
+  id: number;
+  username: string;
+  reader: string | null;
+  text: string | null;
+  dateAdded: string | null;
+  archived: string | null;
+  read: string | null;
+  commented: string | null;
+  comments: string | null;
+}
+
+interface JournalPermissions {
+  writesJournals: boolean;
+  readsJournals: boolean;
+}
 
 export default function JournalsPage() {
+  const [journals, setJournals] = useState<Journal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'unread' | 'read' | 'all' | 'archived'>('unread');
+  const [permissions, setPermissions] = useState<JournalPermissions>({
+    writesJournals: false,
+    readsJournals: false,
+  });
+
+  useEffect(() => {
+    fetchJournals();
+  }, [filter]);
+
+  const fetchJournals = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/journals?filter=${filter}`);
+      if (!response.ok) throw new Error('Failed to fetch journals');
+      
+      const data = await response.json();
+      setJournals(data.data || []);
+      setPermissions(data.permissions || { writesJournals: false, readsJournals: false });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <LegacyMappingCallout
-        title="Journals module"
-        description="Outline the case-linked journaling experience with collaborative editing targets."
-        legacyFile="Journals.php"
-      />
-      <article className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
-        <h2 className="text-xl font-semibold text-white">Planned feature slices</h2>
-        <ul className="mt-4 space-y-3 text-sm text-slate-300">
-          <li>
-            <span className="font-semibold text-brand-200">Entries grid:</span> Server component lists journal entries with
-            filters mirrored from the DataTable definition.
-          </li>
-          <li>
-            <span className="font-semibold text-brand-200">Editor:</span> Client component integrates tiptap/Slate to replace
-            TinyMCE while persisting HTML to match `cm_case_notes` expectations.
-          </li>
-          <li>
-            <span className="font-semibold text-brand-200">Audit trail:</span> Present author/timestamp metadata sourced from
-            journal loader endpoints.
-          </li>
-        </ul>
-      </article>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Journals</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            {permissions.writesJournals && 'Write and manage your journals'}
+            {permissions.readsJournals && 'Read and comment on student journals'}
+            {!permissions.writesJournals && !permissions.readsJournals && 'View journals'}
+          </p>
+        </div>
+        {permissions.writesJournals && (
+          <Link
+            href="/journals/new"
+            className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+          >
+            + New Journal
+          </Link>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-2 border-b border-slate-700 pb-4">
+        <button
+          onClick={() => setFilter('unread')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filter === 'unread'
+              ? 'bg-brand-500 text-white'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700'
+          }`}
+        >
+          Unread
+        </button>
+        <button
+          onClick={() => setFilter('read')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filter === 'read'
+              ? 'bg-brand-500 text-white'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700'
+          }`}
+        >
+          Read
+        </button>
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filter === 'all'
+              ? 'bg-brand-500 text-white'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700'
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setFilter('archived')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            filter === 'archived'
+              ? 'bg-brand-500 text-white'
+              : 'text-slate-400 hover:text-white hover:bg-slate-700'
+          }`}
+        >
+          Archived
+        </button>
+      </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-200">
+          <p className="font-semibold">Error loading journals</p>
+          <p className="mt-1 text-sm">{error}</p>
+          <button
+            onClick={fetchJournals}
+            className="mt-2 text-sm underline hover:no-underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-12 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+          <p className="mt-4 text-slate-400">Loading journals...</p>
+        </div>
+      )}
+
+      {/* Journals List */}
+      {!loading && !error && journals.length === 0 && (
+        <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-12 text-center">
+          <p className="text-slate-400">No journals found</p>
+          {permissions.writesJournals && filter === 'unread' && (
+            <Link
+              href="/journals/new"
+              className="mt-4 inline-block text-brand-400 hover:text-brand-300"
+            >
+              Create your first journal →
+            </Link>
+          )}
+        </div>
+      )}
+
+      {!loading && !error && journals.length > 0 && (
+        <div className="rounded-lg border border-slate-700 bg-slate-800/40 overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-slate-700/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Author
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Preview
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700">
+              {journals.map((journal) => (
+                <tr key={journal.id} className="hover:bg-slate-700/30 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-white">{journal.username}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-slate-300 line-clamp-2">
+                      {journal.text?.substring(0, 100) || 'No content'}
+                      {journal.text && journal.text.length > 100 && '...'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-slate-400">
+                      {journal.dateAdded
+                        ? formatDistanceToNow(new Date(journal.dateAdded), { addSuffix: true })
+                        : 'Unknown'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {journal.commented === 'yes' && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300">
+                        Commented
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <Link
+                      href={`/journals/${journal.id}`}
+                      className="text-brand-400 hover:text-brand-300"
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

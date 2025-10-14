@@ -222,15 +222,17 @@ model User {
 
 // Groups (cm_groups)
 model Group {
-  id           Int     @id @default(autoincrement())
-  groupName    String
-  displayName  String
-  description  String?
-  allowedTabs  String?
-  addCases     Int     @default(0)
-  editCases    Int     @default(0)
-  deleteCases  Int     @default(0)
-  viewOthers   Int     @default(0)
+  id             Int     @id @default(autoincrement())
+  groupName      String
+  displayName    String
+  description    String?
+  allowedTabs    String?
+  addCases       Int     @default(0)
+  editCases      Int     @default(0)
+  deleteCases    Int     @default(0)
+  viewOthers     Int     @default(0)
+  writesJournals Int     @default(0) @map("writes_journals")
+  readsJournals  Int     @default(0) @map("reads_journals")
 
   @@map("cm_groups")
 }
@@ -244,11 +246,68 @@ model CaseType {
   @@map("cm_case_types")
 }
 
-// Clinic types lookup (cm_clinic_type)
+// Clinic types lookup (cm_clinic_types)
 model ClinicType {
   id   Int    @id @default(autoincrement())
   code String
   name String
 
-  @@map("cm_clinic_type")
+  @@map("cm_clinic_types")
+}
+
+// Journals (cm_journals)
+model Journal {
+  id        Int       @id @default(autoincrement())
+  username  String    // Journal author
+  reader    String?   // Comma-separated list of readers
+  text      String?   // Journal content
+  dateAdded DateTime? @map("date_added")
+  archived  String?   // Comma-separated list of users who archived
+  read      String?   // Comma-separated list of users who read
+  commented String?   // 'yes' if has comments
+  comments  String?   // Serialized comments data
+
+  @@map("cm_journals")
+}
+
+// Board posts (cm_board)
+model BoardPost {
+  id         Int       @id @default(autoincrement())
+  title      String?
+  body       String?
+  color      String?   // Background color
+  author     String    // Username of creator
+  timeAdded  DateTime? @map("time_added")
+  timeEdited DateTime? @map("time_edited")
+
+  viewers     BoardViewer[]
+  attachments BoardAttachment[]
+
+  @@map("cm_board")
+}
+
+// Board viewers (cm_board_viewers)
+model BoardViewer {
+  id     Int    @id @default(autoincrement())
+  postId Int    @map("post_id")
+  viewer String // Username or group identifier
+
+  post BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("cm_board_viewers")
+}
+
+// Board attachments (cm_board_attachments)
+model BoardAttachment {
+  id            Int       @id @default(autoincrement())
+  name          String?
+  localFileName String?   @map("local_file_name")
+  extension     String?
+  username      String?
+  postId        Int       @map("post_id")
+  timeAdded     DateTime? @map("time_added")
+
+  post BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("cm_board_attachments")
 }

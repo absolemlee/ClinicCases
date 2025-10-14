@@ -43,10 +43,12 @@ async function main() {
   console.log('Creating users...');
   const adminUser = await prisma.user.upsert({
     where: { username: 'admin' },
-    update: {},
+    update: {
+      password: '$2b$10$Mh25XYl6HfCgdPCQUKR4CuMXycarsvwzzJwYgqtK57w8KFnz7Zv3i', // password: admin
+    },
     create: {
       username: 'admin',
-      password: '$2y$10$dummyHashForTestingPurposes', // Replace with real hash in production
+      password: '$2b$10$Mh25XYl6HfCgdPCQUKR4CuMXycarsvwzzJwYgqtK57w8KFnz7Zv3i', // password: admin
       firstName: 'Admin',
       lastName: 'User',
       email: 'admin@cliniccases.test',

@@ -14,6 +14,8 @@ export default function NewGroupPage() {
     editCases: false,
     deleteCases: false,
     viewOthersCases: false,
+    writesJournals: false,
+    readsJournals: false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,6 +164,34 @@ export default function NewGroupPage() {
                 <div>
                   <span className="text-white font-medium">View Others' Cases</span>
                   <p className="text-sm text-gray-400">Allow members to see cases not assigned to them</p>
+                </div>
+              </label>
+
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="writesJournals"
+                  checked={formData.writesJournals}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <div>
+                  <span className="text-white font-medium">Write Journals</span>
+                  <p className="text-sm text-gray-400">Allow members to create and write journals</p>
+                </div>
+              </label>
+
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="readsJournals"
+                  checked={formData.readsJournals}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <div>
+                  <span className="text-white font-medium">Read Journals</span>
+                  <p className="text-sm text-gray-400">Allow members to read and comment on student journals</p>
                 </div>
               </label>
             </div>

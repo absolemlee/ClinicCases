@@ -7,7 +7,9 @@ import { UserMenu } from './auth/UserMenu';
 const navigation = [
   { name: 'Home', href: '/home' },
   { name: 'Cases', href: '/cases' },
+  { name: 'Board', href: '/board' },
   { name: 'Messages', href: '/messages' },
+  { name: 'Journals', href: '/journals' },
   { name: 'Users', href: '/users' },
   { name: 'Groups', href: '/groups' },
   { name: 'Utilities', href: '/utilities' },

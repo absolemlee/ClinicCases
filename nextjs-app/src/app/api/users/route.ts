@@ -6,12 +6,23 @@ import bcrypt from 'bcryptjs';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
+  const filter = searchParams.get('filter');
 
   try {
     const where: any = {};
     
     if (status) {
       where.status = status;
+    }
+
+    // Filter for journal readers
+    if (filter === 'journal_readers') {
+      const groups = await prisma.group.findMany({
+        where: { readsJournals: 1 },
+        select: { groupName: true },
+      });
+      const groupNames = groups.map((g) => g.groupName);
+      where.grp = { in: groupNames };
     }
 
     const users = await prisma.user.findMany({
