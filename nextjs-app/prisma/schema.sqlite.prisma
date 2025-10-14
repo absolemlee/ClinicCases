@@ -1,0 +1,252 @@
+// Comprehensive Prisma schema for SQLite (local dev)
+// Maps all core ClinicCases tables adapted for SQLite
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Core case table (cm)
+model Case {
+  id              Int       @id @default(autoincrement())
+  clinicId        Int?
+  firstName       String?
+  middleName      String?
+  lastName        String?
+  caseNumber      String?
+  dateOpen        String?
+  dateClose       String?
+  timeOpened      DateTime?
+  timeClosed      DateTime?
+  openedBy        String?
+  closedBy        String?
+  caseType        String?
+  clinicType      String?
+  assignedUsers   String?
+  adverseParties  String?
+  deleted         Int?      @default(0)
+
+  notes           CaseNote[]
+  contacts        CaseContact[]
+  documents       Document[]
+  assignees       CaseAssignee[]
+  events          Event[]
+  messages        Message[]
+  adversePartyRecords AdverseParty[]
+
+  @@map("cm")
+}
+
+// Case column configuration (cm_columns)
+model CaseColumn {
+  id                    Int     @id @default(autoincrement())
+  dbName                String
+  displayName           String
+  includeInCaseTable    Int     @default(1)
+  inputType             String
+  selectOptions         String?
+  displayByDefault      Int     @default(1)
+  required              Int     @default(0)
+  displayOrder          Int     @default(0)
+
+  @@map("cm_columns")
+}
+
+// Case notes (cm_case_notes)
+model CaseNote {
+  id          Int       @id @default(autoincrement())
+  caseId      Int
+  username    String
+  date        String?
+  time        String?
+  description String?
+  datestamp   DateTime?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("cm_case_notes")
+}
+
+// Case assignees (cm_case_assignees)
+model CaseAssignee {
+  id           Int       @id @default(autoincrement())
+  username     String
+  caseId       Int
+  status       String    @default("active")
+  dateAssigned DateTime?
+  dateRemoved  DateTime?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("cm_case_assignees")
+}
+
+// Contacts (cm_contacts)
+model CaseContact {
+  id           Int     @id @default(autoincrement())
+  firstName    String?
+  lastName     String?
+  organization String?
+  type         String?
+  address      String?
+  city         String?
+  state        String?
+  zip          String?
+  phone        String?
+  email        String?
+  url          String?
+  notes        String?
+  assocCase    Int
+
+  case Case @relation(fields: [assocCase], references: [id], onDelete: Cascade)
+
+  @@map("cm_contacts")
+}
+
+// Documents (cm_documents)
+model Document {
+  id               Int       @id @default(autoincrement())
+  caseId           Int?
+  displayName      String?
+  localFileName    String?
+  extension        String?
+  folder           String?
+  containingFolder String?
+  editableText     String?
+  writer           String?
+  addedBy          String?
+  timeAdded        DateTime?
+
+  case Case? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("cm_documents")
+}
+
+// Messages (cm_messages)
+model Message {
+  id         Int       @id @default(autoincrement())
+  to         String?
+  from       String?
+  ccs        String?
+  subject    String?
+  body       String?
+  assocCase  Int?
+  timeSent   DateTime?
+  threadId   Int?
+  readFlag   Int?      @default(0)
+  archived   Int?      @default(0)
+  starred    Int?      @default(0)
+
+  case Case? @relation(fields: [assocCase], references: [id], onDelete: Cascade)
+
+  @@map("cm_messages")
+}
+
+// Events (cm_events)
+model Event {
+  id         Int       @id @default(autoincrement())
+  caseId     Int?
+  setBy      String?
+  task       String?
+  start      DateTime?
+  startText  String?
+  end        DateTime?
+  endText    String?
+  allDay     Int?      @default(0)
+  status     String?   @default("pending")
+  notes      String?
+  location   String?
+  timeAdded  DateTime?
+
+  case         Case? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  responsibles EventResponsible[]
+
+  @@map("cm_events")
+}
+
+// Event responsibilities (cm_events_responsibles)
+model EventResponsible {
+  id        Int       @id @default(autoincrement())
+  eventId   Int
+  username  String
+  timeAdded DateTime?
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("cm_events_responsibles")
+}
+
+// Adverse parties (cm_adverse_parties)
+model AdverseParty {
+  id     Int    @id @default(autoincrement())
+  caseId Int
+  name   String
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("cm_adverse_parties")
+}
+
+// Users (cm_users)
+model User {
+  id               Int       @id @default(autoincrement())
+  firstName        String?
+  lastName         String?
+  email            String?
+  mobilePhone      String?
+  officePhone      String?
+  homePhone        String?
+  grp              String?
+  username         String    @unique
+  password         String
+  supervisors      String?
+  pictureUrl       String?   @default("people/no_picture.png")
+  timezoneOffset   String?   @default("1")
+  status           String?   @default("inactive")
+  newUser          String?
+  dateCreated      DateTime?
+  prefCase         String?   @default("on")
+  prefJournal      String?   @default("on")
+  prefCaseProf     String?   @default("on")
+  evals            String?
+  privateKey       String?
+  forceNewPassword Int?      @default(0)
+
+  @@map("cm_users")
+}
+
+// Groups (cm_groups)
+model Group {
+  id           Int     @id @default(autoincrement())
+  groupName    String
+  displayName  String
+  description  String?
+  allowedTabs  String?
+  addCases     Int     @default(0)
+  editCases    Int     @default(0)
+  deleteCases  Int     @default(0)
+  viewOthers   Int     @default(0)
+
+  @@map("cm_groups")
+}
+
+// Case types lookup (cm_case_types)
+model CaseType {
+  id   Int    @id @default(autoincrement())
+  code String
+  name String
+
+  @@map("cm_case_types")
+}
+
+// Clinic types lookup (cm_clinic_type)
+model ClinicType {
+  id   Int    @id @default(autoincrement())
+  code String
+  name String
+
+  @@map("cm_clinic_type")
+}

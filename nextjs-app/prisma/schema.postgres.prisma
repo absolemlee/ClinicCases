@@ -1,0 +1,252 @@
+// Comprehensive Prisma schema for PostgreSQL
+// Maps all core ClinicCases tables extracted from PHP codebase and migration guide
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core case table (cm)
+model Case {
+  id              Int       @id @default(autoincrement()) @map("id")
+  clinicId        Int?      @map("clinic_id")
+  firstName       String?   @map("first_name") @db.VarChar(255)
+  middleName      String?   @map("middle_name") @db.VarChar(255)
+  lastName        String?   @map("last_name") @db.VarChar(255)
+  caseNumber      String?   @map("case_number") @db.VarChar(255)
+  dateOpen        String?   @map("date_open") @db.VarChar(255)
+  dateClose       String?   @map("date_close") @db.VarChar(255)
+  timeOpened      DateTime? @map("time_opened") @db.Timestamptz
+  timeClosed      DateTime? @map("time_closed") @db.Timestamptz
+  openedBy        String?   @map("opened_by") @db.VarChar(255)
+  closedBy        String?   @map("closed_by") @db.VarChar(255)
+  caseType        String?   @map("case_type") @db.VarChar(255)
+  clinicType      String?   @map("clinic_type") @db.VarChar(255)
+  assignedUsers   String?   @map("assigned_users") @db.Text
+  adverseParties  String?   @map("adverse_parties") @db.Text
+  deleted         Boolean?  @default(false) @map("deleted")
+
+  notes           CaseNote[]
+  contacts        CaseContact[]
+  documents       Document[]
+  assignees       CaseAssignee[]
+  events          Event[]
+  messages        Message[]
+  adversePartyRecords AdverseParty[]
+
+  @@map("cm")
+}
+
+// Case column configuration (cm_columns)
+model CaseColumn {
+  id                    Int     @id @default(autoincrement())
+  dbName                String  @map("db_name") @db.VarChar(255)
+  displayName           String  @map("display_name") @db.VarChar(255)
+  includeInCaseTable    Boolean @default(true) @map("include_in_case_table")
+  inputType             String  @map("input_type") @db.VarChar(50)
+  selectOptions         String? @map("select_options") @db.Text
+  displayByDefault      Boolean @default(true) @map("display_by_default")
+  required              Boolean @default(false) @map("required")
+  displayOrder          Int     @default(0) @map("display_order")
+
+  @@map("cm_columns")
+}
+
+// Case notes (cm_case_notes)
+model CaseNote {
+  id          Int       @id @default(autoincrement())
+  caseId      Int       @map("case_id")
+  username    String    @map("username") @db.VarChar(255)
+  date        String?   @map("date") @db.VarChar(50)
+  time        String?   @map("time") @db.VarChar(50)
+  description String?   @map("description") @db.Text
+  datestamp   DateTime? @map("datestamp") @db.Timestamptz
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("cm_case_notes")
+}
+
+// Case assignees (cm_case_assignees)
+model CaseAssignee {
+  id           Int       @id @default(autoincrement())
+  username     String    @map("username") @db.VarChar(255)
+  caseId       Int       @map("case_id")
+  status       String    @default("active") @map("status") @db.VarChar(50)
+  dateAssigned DateTime? @map("date_assigned") @db.Timestamptz
+  dateRemoved  DateTime? @map("date_removed") @db.Timestamptz
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("cm_case_assignees")
+}
+
+// Contacts (cm_contacts)
+model CaseContact {
+  id           Int     @id @default(autoincrement())
+  firstName    String? @map("first_name") @db.VarChar(255)
+  lastName     String? @map("last_name") @db.VarChar(255)
+  organization String? @map("organization") @db.VarChar(255)
+  type         String? @map("type") @db.VarChar(100)
+  address      String? @map("address") @db.VarChar(500)
+  city         String? @map("city") @db.VarChar(255)
+  state        String? @map("state") @db.VarChar(100)
+  zip          String? @map("zip") @db.VarChar(20)
+  phone        String? @map("phone") @db.Text
+  email        String? @map("email") @db.Text
+  url          String? @map("url") @db.VarChar(500)
+  notes        String? @map("notes") @db.Text
+  assocCase    Int     @map("assoc_case")
+
+  case Case @relation(fields: [assocCase], references: [id], onDelete: Cascade)
+
+  @@map("cm_contacts")
+}
+
+// Documents (cm_documents)
+model Document {
+  id               Int       @id @default(autoincrement())
+  caseId           Int?      @map("case_id")
+  displayName      String?   @map("display_name") @db.VarChar(500)
+  localFileName    String?   @map("local_file_name") @db.VarChar(500)
+  extension        String?   @map("extension") @db.VarChar(50)
+  folder           String?   @map("folder") @db.VarChar(500)
+  containingFolder String?   @map("containing_folder") @db.VarChar(500)
+  editableText     String?   @map("editable_text") @db.Text
+  writer           String?   @map("writer") @db.VarChar(255)
+  addedBy          String?   @map("added_by") @db.VarChar(255)
+  timeAdded        DateTime? @map("time_added") @db.Timestamptz
+
+  case Case? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("cm_documents")
+}
+
+// Messages (cm_messages)
+model Message {
+  id         Int       @id @default(autoincrement())
+  to         String?   @map("to") @db.Text
+  from       String?   @map("from") @db.VarChar(255)
+  ccs        String?   @map("ccs") @db.Text
+  subject    String?   @map("subject") @db.VarChar(500)
+  body       String?   @map("body") @db.Text
+  assocCase  Int?      @map("assoc_case")
+  timeSent   DateTime? @map("time_sent") @db.Timestamptz
+  threadId   Int?      @map("thread_id")
+  readFlag   Boolean?  @default(false) @map("read_flag")
+  archived   Boolean?  @default(false) @map("archived")
+  starred    Boolean?  @default(false) @map("starred")
+
+  case Case? @relation(fields: [assocCase], references: [id], onDelete: Cascade)
+
+  @@map("cm_messages")
+}
+
+// Events (cm_events)
+model Event {
+  id         Int       @id @default(autoincrement())
+  caseId     Int?      @map("case_id")
+  setBy      String?   @map("set_by") @db.VarChar(255)
+  task       String?   @map("task") @db.VarChar(500)
+  start      DateTime? @map("start") @db.Timestamptz
+  startText  String?   @map("start_text") @db.VarChar(255)
+  end        DateTime? @map("end") @db.Timestamptz
+  endText    String?   @map("end_text") @db.VarChar(255)
+  allDay     Boolean?  @default(false) @map("all_day")
+  status     String?   @default("pending") @map("status") @db.VarChar(50)
+  notes      String?   @map("notes") @db.Text
+  location   String?   @map("location") @db.VarChar(500)
+  timeAdded  DateTime? @map("time_added") @db.Timestamptz
+
+  case         Case? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  responsibles EventResponsible[]
+
+  @@map("cm_events")
+}
+
+// Event responsibilities (cm_events_responsibles)
+model EventResponsible {
+  id        Int       @id @default(autoincrement())
+  eventId   Int       @map("event_id")
+  username  String    @map("username") @db.VarChar(255)
+  timeAdded DateTime? @map("time_added") @db.Timestamptz
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("cm_events_responsibles")
+}
+
+// Adverse parties (cm_adverse_parties)
+model AdverseParty {
+  id     Int    @id @default(autoincrement())
+  caseId Int    @map("case_id")
+  name   String @map("name") @db.VarChar(500)
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@map("cm_adverse_parties")
+}
+
+// Users (cm_users)
+model User {
+  id               Int       @id @default(autoincrement())
+  firstName        String?   @map("first_name") @db.VarChar(255)
+  lastName         String?   @map("last_name") @db.VarChar(255)
+  email            String?   @map("email") @db.VarChar(255)
+  mobilePhone      String?   @map("mobile_phone") @db.VarChar(50)
+  officePhone      String?   @map("office_phone") @db.VarChar(50)
+  homePhone        String?   @map("home_phone") @db.VarChar(50)
+  grp              String?   @map("grp") @db.VarChar(100)
+  username         String    @unique @map("username") @db.VarChar(255)
+  password         String    @map("password") @db.VarChar(255)
+  supervisors      String?   @map("supervisors") @db.Text
+  pictureUrl       String?   @default("people/no_picture.png") @map("picture_url") @db.VarChar(500)
+  timezoneOffset   String?   @default("1") @map("timezone_offset") @db.VarChar(10)
+  status           String?   @default("inactive") @map("status") @db.VarChar(50)
+  newUser          String?   @map("new") @db.VarChar(10)
+  dateCreated      DateTime? @map("date_created") @db.Timestamptz
+  prefCase         String?   @default("on") @map("pref_case") @db.VarChar(10)
+  prefJournal      String?   @default("on") @map("pref_journal") @db.VarChar(10)
+  prefCaseProf     String?   @default("on") @map("pref_case_prof") @db.VarChar(10)
+  evals            String?   @map("evals") @db.Text
+  privateKey       String?   @map("private_key") @db.VarChar(255)
+  forceNewPassword Boolean?  @default(false) @map("force_new_password")
+
+  @@map("cm_users")
+}
+
+// Groups (cm_groups)
+model Group {
+  id           Int     @id @default(autoincrement())
+  groupName    String  @map("group_name") @db.VarChar(100)
+  displayName  String  @map("display_name") @db.VarChar(255)
+  description  String? @map("description") @db.Text
+  allowedTabs  String? @map("allowed_tabs") @db.Text
+  addCases     Boolean @default(false) @map("add_cases")
+  editCases    Boolean @default(false) @map("edit_cases")
+  deleteCases  Boolean @default(false) @map("delete_cases")
+  viewOthers   Boolean @default(false) @map("view_others")
+
+  @@map("cm_groups")
+}
+
+// Case types lookup (cm_case_types)
+model CaseType {
+  id   Int    @id @default(autoincrement())
+  code String @map("code") @db.VarChar(100)
+  name String @map("name") @db.VarChar(255)
+
+  @@map("cm_case_types")
+}
+
+// Clinic types lookup (cm_clinic_type)
+model ClinicType {
+  id   Int    @id @default(autoincrement())
+  code String @map("code") @db.VarChar(100)
+  name String @map("name") @db.VarChar(255)
+
+  @@map("cm_clinic_type")
+}

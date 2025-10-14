@@ -30,3 +30,27 @@ workflow can be rewritten incrementally.
 
 Future work will introduce Prisma models, API routes, and progressively enhanced UI components to replace each legacy
 workflow while keeping parity with the documented data schema.
+
+## Local DB provisioning (SQLite)
+
+This project supports quick local provisioning using SQLite so you can run Prisma without a Postgres instance.
+
+1. Copy the example env:
+
+```bash
+cp .env.example .env
+```
+
+2. Edit `.env` and set DATABASE_URL to a sqlite file, for example:
+
+```bash
+DATABASE_URL="file:./dev.db"
+```
+
+3. Run the provisioning script:
+
+```bash
+npm run db:provision
+```
+
+The script will detect the sqlite URL, copy the sqlite Prisma schema into `prisma/schema.prisma`, run `prisma generate`, and attempt a migration. For Postgres provisioning, set `PG_SUPERUSER_URL` and a Postgres-style `DATABASE_URL` instead.
