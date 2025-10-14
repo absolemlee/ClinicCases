@@ -54,8 +54,8 @@ export function AddNoteModal({ caseId, isOpen, onClose, onSuccess }: AddNoteModa
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-slate-800 rounded-t-2xl sm:rounded-lg p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold text-white mb-4">Add Case Note</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -73,18 +73,18 @@ export function AddNoteModal({ caseId, isOpen, onClose, onSuccess }: AddNoteModa
             />
           </div>
 
-          <div className="flex justify-end space-x-4 pt-4 border-t border-gray-700">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
+              className="w-full sm:w-auto px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 disabled:opacity-50 transition-colors"
             >
               {loading ? 'Adding...' : 'Add Note'}
             </button>

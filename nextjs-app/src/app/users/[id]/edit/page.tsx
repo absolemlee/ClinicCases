@@ -3,6 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { 
+  USER_TYPES, 
+  ABILITIES,
+  getUserType,
+  getUserAbilities,
+  getUserTypeDisplay,
+  getAvailableAbilities,
+  getAbilityDisplay,
+  getAbilityDescription,
+  getAbilityIcon,
+  type UserType,
+  type Ability
+} from '@/lib/permissions-client';
 
 interface Group {
   id: number;
@@ -31,6 +44,8 @@ export default function EditUserPage() {
   const [saving, setSaving] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
   const [error, setError] = useState('');
+  const [selectedUserType, setSelectedUserType] = useState<UserType | ''>('');
+  const [selectedAbilities, setSelectedAbilities] = useState<Ability[]>([]);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -68,6 +83,14 @@ export default function EditUserPage() {
       
       if (data.success) {
         const user: User = data.data;
+        
+        // Parse existing roles
+        const userType = getUserType({ grp: user.grp });
+        const abilities = getUserAbilities({ grp: user.grp });
+        
+        setSelectedUserType(userType || '');
+        setSelectedAbilities(abilities);
+        
         setFormData({
           firstName: user.firstName || '',
           lastName: user.lastName || '',
@@ -96,6 +119,38 @@ export default function EditUserPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleUserTypeChange = (type: UserType | '') => {
+    setSelectedUserType(type);
+    // Reset abilities when changing user type
+    setSelectedAbilities([]);
+  };
+
+  const handleAbilityToggle = (ability: Ability) => {
+    setSelectedAbilities(prev => {
+      if (prev.includes(ability)) {
+        return prev.filter(a => a !== ability);
+      } else {
+        return [...prev, ability];
+      }
+    });
+  };
+
+  const buildGrpString = (): string => {
+    if (!selectedUserType) return '';
+    
+    // Start with user type
+    const parts: string[] = [selectedUserType];
+    
+    // Add selected abilities
+    selectedAbilities.forEach(ability => {
+      if (!parts.includes(ability as string)) {
+        parts.push(ability);
+      }
+    });
+    
+    return parts.join(',');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -117,9 +172,17 @@ export default function EditUserPage() {
       return;
     }
 
+    if (!selectedUserType) {
+      setError('User type is required');
+      return;
+    }
+
     setSaving(true);
 
     try {
+      // Build grp string from selected type and abilities
+      const grpValue = buildGrpString();
+      
       const updateData: any = {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -127,7 +190,7 @@ export default function EditUserPage() {
         mobilePhone: formData.mobilePhone || null,
         officePhone: formData.officePhone || null,
         homePhone: formData.homePhone || null,
-        grp: formData.grp || null,
+        grp: grpValue || null,
         status: formData.status,
       };
 
@@ -193,43 +256,164 @@ export default function EditUserPage() {
           {/* Account Status */}
           <div>
             <h2 className="text-xl font-semibold text-white mb-4">Account Status</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-300 mb-2">
-                  Status
-                </label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-300 mb-2">
+                Status
+              </label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
 
-              <div>
-                <label htmlFor="grp" className="block text-sm font-medium text-gray-300 mb-2">
-                  Group
-                </label>
-                <select
-                  id="grp"
-                  name="grp"
-                  value={formData.grp}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select a group</option>
-                  {groups.map(group => (
-                    <option key={group.id} value={group.groupName}>
-                      {group.groupName}
-                    </option>
-                  ))}
-                </select>
+          {/* User Type & Abilities */}
+          <div className="border-t border-slate-700 pt-6">
+            <h2 className="text-xl font-semibold text-white mb-2">Role & Permissions</h2>
+            <p className="text-sm text-slate-400 mb-6">
+              Select the user type and assign functional abilities
+            </p>
+
+            {/* User Type Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-slate-300 mb-3">
+                User Type <span className="text-red-400">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Object.values(USER_TYPES).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => handleUserTypeChange(type)}
+                    className={`p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedUserType === type
+                        ? 'border-brand-500 bg-brand-500/20'
+                        : 'border-slate-600 bg-slate-800/40 hover:border-slate-500'
+                    }`}
+                  >
+                    <div className="font-semibold text-white mb-1">
+                      {getUserTypeDisplay(type)}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      {type === 'admin' && 'Full system access'}
+                      {type === 'attorney' && 'Licensed legal professional'}
+                      {type === 'paralegal' && 'Legal support staff'}
+                      {type === 'intern' && 'Student/learning role'}
+                      {type === 'staff' && 'Administrative support'}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Functional Abilities */}
+            {selectedUserType && selectedUserType !== 'admin' && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-3">
+                  Functional Abilities
+                  <span className="ml-2 text-xs text-slate-500 font-normal">
+                    (Optional - grant additional permissions)
+                  </span>
+                </label>
+                <div className="bg-slate-800/40 rounded-lg border border-slate-700 p-4">
+                  <div className="space-y-3">
+                    {getAvailableAbilities(selectedUserType).map((ability) => {
+                      // Check if this is an auto-included ability
+                      const isAutoIncluded = 
+                        (selectedUserType === 'attorney' && ability === 'attorney') ||
+                        (selectedUserType === 'paralegal' && ability === 'staff') ||
+                        (selectedUserType === 'staff' && ability === 'staff');
+
+                      return (
+                        <div key={ability} className="flex items-start">
+                          <input
+                            type="checkbox"
+                            id={`ability-${ability}`}
+                            checked={selectedAbilities.includes(ability) || isAutoIncluded}
+                            onChange={() => !isAutoIncluded && handleAbilityToggle(ability)}
+                            disabled={isAutoIncluded}
+                            className="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-700 text-brand-500 focus:ring-brand-500 focus:ring-offset-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                          />
+                          <label 
+                            htmlFor={`ability-${ability}`} 
+                            className={`ml-3 flex-1 ${isAutoIncluded ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{getAbilityIcon(ability)}</span>
+                              <span className="font-medium text-white">
+                                {getAbilityDisplay(ability)}
+                              </span>
+                              {isAutoIncluded && (
+                                <span className="text-xs text-brand-400 bg-brand-500/20 px-2 py-0.5 rounded">
+                                  auto-included
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-slate-400 mt-0.5">
+                              {getAbilityDescription(ability)}
+                            </div>
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Current Role Summary */}
+                {(selectedUserType || selectedAbilities.length > 0) && (
+                  <div className="mt-4 p-4 bg-slate-800/60 rounded-lg border border-slate-600">
+                    <div className="text-sm font-semibold text-slate-300 mb-2">
+                      Current Role Configuration:
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedUserType && (
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-brand-500/20 border border-brand-500/30 text-brand-300 text-sm font-medium">
+                          {getUserTypeDisplay(selectedUserType)}
+                        </span>
+                      )}
+                      {selectedAbilities.map(ability => (
+                        <span 
+                          key={ability}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-purple-500/20 border border-purple-500/30 text-purple-300 text-sm"
+                        >
+                          <span>{getAbilityIcon(ability)}</span>
+                          <span>{ability}</span>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-2">
+                      Database value: <code className="bg-slate-900 px-1.5 py-0.5 rounded">
+                        {buildGrpString() || '(empty)'}
+                      </code>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Admin Notice */}
+            {selectedUserType === 'admin' && (
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">⚠️</span>
+                  <div>
+                    <div className="font-semibold text-yellow-300 mb-1">
+                      Administrator Role
+                    </div>
+                    <div className="text-sm text-yellow-200/80">
+                      Administrators have full system access including all permissions and abilities.
+                      No additional abilities need to be assigned.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Personal Information */}

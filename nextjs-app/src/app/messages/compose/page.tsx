@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface User {
@@ -18,12 +18,14 @@ interface Case {
   lastName: string | null;
 }
 
-export default function ComposeMessagePage() {
+function ComposeMessageForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     to: '',
     cc: '',
@@ -35,7 +37,25 @@ export default function ComposeMessagePage() {
   useEffect(() => {
     fetchUsers();
     fetchCases();
-  }, []);
+    
+    // Pre-fill from query params if present
+    const caseId = searchParams.get('caseId');
+    const replyTo = searchParams.get('replyTo');
+    const subject = searchParams.get('subject');
+    
+    if (caseId) {
+      setFormData(prev => ({ ...prev, caseId }));
+    }
+    if (replyTo) {
+      setFormData(prev => ({ ...prev, to: replyTo }));
+    }
+    if (subject) {
+      setFormData(prev => ({ 
+        ...prev, 
+        subject: subject.startsWith('Re:') ? subject : `Re: ${subject}` 
+      }));
+    }
+  }, [searchParams]);
 
   const fetchUsers = async () => {
     try {
@@ -118,15 +138,15 @@ export default function ComposeMessagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
+    <div className="min-h-screen bg-slate-900 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white">Compose Message</h1>
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Compose Message</h1>
             <Link
               href="/messages"
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-slate-400 hover:text-white transition-colors text-sm sm:text-base"
             >
               ← Back to Messages
             </Link>
@@ -135,16 +155,23 @@ export default function ComposeMessagePage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
             <p className="text-red-200 text-sm">{error}</p>
           </div>
         )}
 
+        {/* Success Message */}
+        {success && (
+          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
+            <p className="text-green-200 text-sm">{success}</p>
+          </div>
+        )}
+
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg shadow-lg p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-slate-800/40 border border-slate-700 rounded-lg shadow-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Recipient */}
           <div>
-            <label htmlFor="to" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="to" className="block text-sm font-medium text-slate-300 mb-2">
               To <span className="text-red-400">*</span>
             </label>
             <select
@@ -153,7 +180,7 @@ export default function ComposeMessagePage() {
               required
               value={formData.to}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">Select recipient</option>
               {users.map(user => (
@@ -166,7 +193,7 @@ export default function ComposeMessagePage() {
 
           {/* CC */}
           <div>
-            <label htmlFor="cc" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="cc" className="block text-sm font-medium text-slate-300 mb-2">
               CC
             </label>
             <input
@@ -175,14 +202,14 @@ export default function ComposeMessagePage() {
               name="cc"
               value={formData.cc}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Comma-separated usernames (optional)"
             />
           </div>
 
           {/* Associated Case */}
           <div>
-            <label htmlFor="caseId" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="caseId" className="block text-sm font-medium text-slate-300 mb-2">
               Associate with Case (Optional)
             </label>
             <select
@@ -190,7 +217,7 @@ export default function ComposeMessagePage() {
               name="caseId"
               value={formData.caseId}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">No case association</option>
               {cases.map(c => (
@@ -203,7 +230,7 @@ export default function ComposeMessagePage() {
 
           {/* Subject */}
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="subject" className="block text-sm font-medium text-slate-300 mb-2">
               Subject <span className="text-red-400">*</span>
             </label>
             <input
@@ -213,14 +240,14 @@ export default function ComposeMessagePage() {
               required
               value={formData.subject}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Enter message subject"
             />
           </div>
 
           {/* Message Body */}
           <div>
-            <label htmlFor="body" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="body" className="block text-sm font-medium text-slate-300 mb-2">
               Message <span className="text-red-400">*</span>
             </label>
             <textarea
@@ -230,23 +257,26 @@ export default function ComposeMessagePage() {
               value={formData.body}
               onChange={handleChange}
               rows={10}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-y"
               placeholder="Enter your message..."
             />
+            <p className="mt-1 text-xs text-slate-500">
+              Tip: Use clear, professional language
+            </p>
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end space-x-4 pt-4 border-t border-gray-700">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 sm:space-x-4 pt-4 border-t border-slate-700">
             <Link
               href="/messages"
-              className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="w-full sm:w-auto text-center px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="w-full sm:w-auto px-6 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
                 <>
@@ -257,12 +287,36 @@ export default function ComposeMessagePage() {
                   <span>Sending...</span>
                 </>
               ) : (
-                <span>Send Message</span>
+                <>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  <span>Send Message</span>
+                </>
               )}
             </button>
           </div>
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ComposeMessagePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-900 p-4 sm:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500 mb-4"></div>
+              <p className="text-slate-400">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ComposeMessageForm />
+    </Suspense>
   );
 }

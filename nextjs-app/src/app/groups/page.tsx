@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { 
+  getUserTypeDisplay, 
+  getAvailableAbilities, 
+  getAbilityDisplay, 
+  getAbilityIcon,
+  USER_TYPES,
+  type UserType 
+} from '@/lib/permissions-client';
 
 interface Group {
   id: number;
@@ -68,114 +76,155 @@ export default function GroupsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 p-8">
-        <div className="text-center text-gray-400">Loading groups...</div>
+      <div className="space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Group Management</h1>
+        <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-12 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+          <p className="mt-4 text-slate-400">Loading groups...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 p-8">
-        <div className="text-center text-red-400">Error: {error}</div>
+      <div className="space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Group Management</h1>
+        <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-200">
+          <p className="font-semibold">Error loading groups</p>
+          <p className="mt-1 text-sm">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-white">Group Management</h1>
-          <Link
-            href="/groups/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Add New Group
-          </Link>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Group Management</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Manage user groups and permissions
+          </p>
         </div>
+        <Link
+          href="/groups/new"
+          className="w-full sm:w-auto text-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+        >
+          Add New Group
+        </Link>
+      </div>
 
         {/* Groups Table */}
-        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-slate-800/40 rounded-lg border border-slate-700 shadow-lg overflow-hidden">
           {groups.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">
+            <div className="p-8 text-center text-slate-400">
               No groups found
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-gray-900">
+            <table className="min-w-full divide-y divide-slate-700">
+              <thead className="bg-slate-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Display Name
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                    User Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Group Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                     Description
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Permissions
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                    Available Abilities
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                    Case Permissions
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-gray-800 divide-y divide-gray-700">
-                {groups.map((group) => (
-                  <tr key={group.id} className="hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">
-                      {group.displayName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {group.groupName}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-300">
-                      {group.description || '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-300">
-                      <div className="flex flex-wrap gap-1">
-                        {group.addCases === 1 && (
-                          <span className="px-2 py-1 text-xs bg-green-900 text-green-200 rounded">
-                            Add
-                          </span>
+              <tbody className="bg-slate-800/20 divide-y divide-slate-700">
+                {groups.map((group) => {
+                  const isUserType = Object.values(USER_TYPES).includes(group.groupName as UserType);
+                  const availableAbilities = isUserType ? getAvailableAbilities(group.groupName as UserType) : [];
+                  
+                  return (
+                    <tr key={group.id} className="hover:bg-slate-700/30 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-semibold text-white">
+                            {group.displayName}
+                          </div>
+                          <div className="text-xs text-slate-400 mt-0.5">
+                            {group.groupName}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-slate-300 max-w-xs">
+                          {group.description || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {isUserType && availableAbilities.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {availableAbilities.map((ability) => (
+                              <span
+                                key={ability}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-brand-500/20 text-brand-300 border border-brand-500/30 rounded-md"
+                                title={getAbilityDisplay(ability)}
+                              >
+                                <span>{getAbilityIcon(ability)}</span>
+                                <span>{ability}</span>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500">Base user type</span>
                         )}
-                        {group.editCases === 1 && (
-                          <span className="px-2 py-1 text-xs bg-blue-900 text-blue-200 rounded">
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {group.addCases === 1 && (
+                            <span className="px-2 py-1 text-xs bg-green-500/20 text-green-300 border border-green-500/30 rounded">
+                              Add
+                            </span>
+                          )}
+                          {group.editCases === 1 && (
+                            <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded">
+                              Edit
+                            </span>
+                          )}
+                          {group.deleteCases === 1 && (
+                            <span className="px-2 py-1 text-xs bg-red-500/20 text-red-300 border border-red-500/30 rounded">
+                              Delete
+                            </span>
+                          )}
+                          {group.viewOthers === 1 && (
+                            <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded">
+                              View All
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex space-x-3">
+                          <Link
+                            href={`/groups/${group.id}/edit` as any}
+                            className="text-brand-400 hover:text-brand-300 font-medium transition-colors"
+                          >
                             Edit
-                          </span>
-                        )}
-                        {group.deleteCases === 1 && (
-                          <span className="px-2 py-1 text-xs bg-red-900 text-red-200 rounded">
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(group.id)}
+                            className="text-red-400 hover:text-red-300 font-medium transition-colors"
+                          >
                             Delete
-                          </span>
-                        )}
-                        {group.viewOthers === 1 && (
-                          <span className="px-2 py-1 text-xs bg-purple-900 text-purple-200 rounded">
-                            View Others
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      <div className="flex space-x-2">
-                        <Link
-                          href={`/groups/${group.id}/edit` as any}
-                          className="text-green-400 hover:text-green-300"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(group.id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -218,7 +267,6 @@ export default function GroupsPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

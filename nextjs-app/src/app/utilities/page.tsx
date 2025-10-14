@@ -60,52 +60,51 @@ export default function UtilitiesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">System Utilities</h1>
-          <p className="text-gray-400 mt-2">Manage system configuration and reference data</p>
-        </div>
+    <div className="space-y-4 sm:space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">System Utilities</h1>
+        <p className="text-slate-400 mt-2">Manage system configuration and reference data</p>
+      </div>
 
-        {/* Tab Navigation */}
-        <div className="mb-6 border-b border-gray-700">
-          <nav className="flex space-x-8">
+      {/* Tab Navigation */}
+      <div className="border-b border-slate-700 overflow-x-auto">
+        <nav className="flex space-x-4 sm:space-x-8">
             <button
               onClick={() => setActiveTab('case-types')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'case-types'
-                  ? 'border-blue-500 text-blue-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                  ? 'border-brand-500 text-brand-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-600'
               }`}
             >
               Case Types
             </button>
             <button
               onClick={() => setActiveTab('clinic-types')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'clinic-types'
-                  ? 'border-blue-500 text-blue-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                  ? 'border-brand-500 text-brand-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-600'
               }`}
             >
               Clinic Types
             </button>
             <button
               onClick={() => setActiveTab('case-columns')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'case-columns'
-                  ? 'border-blue-500 text-blue-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                  ? 'border-brand-500 text-brand-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-600'
               }`}
             >
               Case Columns
             </button>
             <button
               onClick={() => setActiveTab('system')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              className={`whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'system'
-                  ? 'border-blue-500 text-blue-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                  ? 'border-brand-500 text-brand-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300 hover:border-slate-600'
               }`}
             >
               System Settings
@@ -292,7 +291,6 @@ export default function UtilitiesPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

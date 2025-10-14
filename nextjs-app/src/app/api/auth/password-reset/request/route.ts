@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
+import { sendPasswordResetEmail } from '@/lib/email';
 
 // POST /api/auth/password-reset/request - Request password reset
 export async function POST(request: Request) {
@@ -20,8 +21,8 @@ export async function POST(request: Request) {
     });
 
     // Always return success for security (don't reveal if email exists)
-    // But only generate token if user exists
-    if (user) {
+    // But only generate token if user exists and has email
+    if (user && user.email) {
       // Generate reset token
       const resetToken = crypto.randomBytes(32).toString('hex');
       const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
@@ -35,25 +36,22 @@ export async function POST(request: Request) {
         },
       });
 
-      // In a production environment, you would send an email here
-      // For now, log the reset URL to console
+      // Send password reset email via Resend API (HTTPS - no SMTP required)
       const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/password-reset/reset?token=${resetToken}`;
       
-      console.log('='.repeat(80));
-      console.log('PASSWORD RESET REQUESTED');
-      console.log('='.repeat(80));
-      console.log('User:', user.username);
-      console.log('Email:', user.email);
-      console.log('Reset URL:', resetUrl);
-      console.log('Token expires:', resetTokenExpiry.toISOString());
-      console.log('='.repeat(80));
+      const emailResult = await sendPasswordResetEmail(
+        user.email,
+        resetUrl,
+        user.username
+      );
 
-      // TODO: Implement email sending
-      // await sendEmail({
-      //   to: email,
-      //   subject: 'Password Reset Request',
-      //   html: `Click this link to reset your password: <a href="${resetUrl}">${resetUrl}</a>`,
-      // });
+      if (emailResult.success) {
+        console.log('✅ Password reset email sent successfully to:', user.email);
+      } else {
+        // Log error but don't reveal to user (security - don't confirm email exists)
+        console.error('❌ Failed to send password reset email:', emailResult.error);
+        // Continue anyway - always return success message for security
+      }
     }
 
     return NextResponse.json({

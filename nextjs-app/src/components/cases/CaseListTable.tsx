@@ -8,7 +8,90 @@ type CaseListTableProps = {
 
 export function CaseListTable({ cases, onRefresh }: CaseListTableProps) {
   return (
-    <div className="rounded-lg border border-slate-700 bg-slate-800/40 overflow-hidden">
+    <>
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {cases.map((caseItem) => (
+          <Link
+            key={caseItem.id}
+            href={`/cases/${caseItem.id}`}
+            className="block rounded-lg border border-slate-700 bg-slate-800/40 p-4 hover:bg-slate-700/20 transition-colors"
+          >
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <p className="font-mono text-sm text-brand-400 font-semibold">
+                  {caseItem.caseNumber || `#${caseItem.id}`}
+                </p>
+                <p className="text-base text-slate-200 font-medium mt-1">
+                  {caseItem.firstName || caseItem.lastName
+                    ? `${caseItem.firstName || ''} ${caseItem.lastName || ''}`.trim()
+                    : '—'}
+                </p>
+              </div>
+              <div>
+                {caseItem.dateClose ? (
+                  <span className="inline-flex items-center rounded-full bg-slate-700 px-2.5 py-0.5 text-xs font-medium text-slate-300">
+                    Closed
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded-full bg-green-500/20 px-2.5 py-0.5 text-xs font-medium text-green-300">
+                    Open
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className="space-y-1 text-sm">
+              {caseItem.caseType && (
+                <p className="text-slate-300">
+                  <span className="text-slate-400">Type:</span> {caseItem.caseType}
+                </p>
+              )}
+              {caseItem.dateOpen && (
+                <p className="text-slate-300">
+                  <span className="text-slate-400">Opened:</span> {caseItem.dateOpen}
+                </p>
+              )}
+              {caseItem.assignees.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {caseItem.assignees
+                    .filter((a) => a.status === 'active')
+                    .map((assignee, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center rounded bg-brand-500/20 px-2 py-0.5 text-xs text-brand-200"
+                      >
+                        {assignee.username}
+                      </span>
+                    ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-3 flex items-center justify-end">
+              <span className="text-brand-400 text-sm font-medium">
+                View details →
+              </span>
+            </div>
+          </Link>
+        ))}
+        
+        {/* Mobile Footer */}
+        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-700 bg-slate-800/30 rounded-lg">
+          <p className="text-sm text-slate-400">
+            {cases.length} {cases.length === 1 ? 'case' : 'cases'}
+          </p>
+          <button
+            onClick={onRefresh}
+            className="text-sm text-brand-400 hover:text-brand-300 font-medium"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-lg border border-slate-700 bg-slate-800/40 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-slate-800/60 border-b border-slate-700">
@@ -104,18 +187,19 @@ export function CaseListTable({ cases, onRefresh }: CaseListTableProps) {
         </table>
       </div>
 
-      {/* Footer with refresh button */}
-      <div className="border-t border-slate-700 bg-slate-800/30 px-4 py-3 flex items-center justify-between">
-        <p className="text-sm text-slate-400">
-          Showing {cases.length} {cases.length === 1 ? 'case' : 'cases'}
-        </p>
-        <button
-          onClick={onRefresh}
-          className="text-sm text-brand-400 hover:text-brand-300 hover:underline"
-        >
-          Refresh
-        </button>
+        {/* Footer with refresh button */}
+        <div className="border-t border-slate-700 bg-slate-800/30 px-4 py-3 flex items-center justify-between">
+          <p className="text-sm text-slate-400">
+            Showing {cases.length} {cases.length === 1 ? 'case' : 'cases'}
+          </p>
+          <button
+            onClick={onRefresh}
+            className="text-sm text-brand-400 hover:text-brand-300 hover:underline"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

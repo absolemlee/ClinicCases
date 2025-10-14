@@ -52,11 +52,11 @@ export default function CasesPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">Cases</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Cases</h1>
           <p className="mt-1 text-sm text-slate-400">
             Manage and track client cases
           </p>
@@ -64,7 +64,7 @@ export default function CasesPage() {
         {permissions.addCases && (
           <Link
             href="/cases/new"
-            className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+            className="w-full sm:w-auto text-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
           >
             + New Case
           </Link>

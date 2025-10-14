@@ -5,19 +5,27 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seed...');
 
-  // Create sample groups
-  console.log('Creating groups...');
+  // Create user type groups
+  console.log('Creating user types (groups)...');
+  
+  // 1. Administrator - Full system access
   const adminGroup = await prisma.group.upsert({
     where: { id: 1 },
     update: {
+      displayName: 'Administrator',
+      description: 'System administrators with full access',
       writesJournals: 1,
       readsJournals: 1,
+      addCases: 1,
+      editCases: 1,
+      deleteCases: 1,
+      viewOthers: 1,
     },
     create: {
       groupName: 'admin',
-      displayName: 'Administrators',
-      description: 'Full system access',
-      allowedTabs: 'a:6:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Users";i:3;s:5:"Board";i:4;s:9:"Utilities";i:5;s:8:"Messages";}',
+      displayName: 'Administrator',
+      description: 'System administrators with full access',
+      allowedTabs: 'a:9:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Users";i:3;s:6:"Groups";i:4;s:5:"Board";i:5;s:9:"Utilities";i:6;s:8:"Messages";i:7;s:8:"Journals";i:8;s:11:"Preferences";}',
       addCases: 1,
       editCases: 1,
       deleteCases: 1,
@@ -27,29 +35,93 @@ async function main() {
     },
   });
 
-  const studentGroup = await prisma.group.upsert({
+  // 2. Attorney - Licensed legal professionals
+  const attorneyGroup = await prisma.group.upsert({
     where: { id: 2 },
-    update: {},
+    update: {
+      groupName: 'attorney',
+      displayName: 'Attorney',
+      description: 'Licensed attorneys handling cases',
+    },
     create: {
-      groupName: 'student',
-      displayName: 'Students',
-      description: 'Limited access for students',
-      allowedTabs: 'a:3:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:8:"Messages";}',
-      addCases: 0,
-      editCases: 0,
-      deleteCases: 0,
-      viewOthers: 0,
+      groupName: 'attorney',
+      displayName: 'Attorney',
+      description: 'Licensed attorneys handling cases',
+      allowedTabs: 'a:6:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Board";i:3;s:8:"Messages";i:4;s:8:"Journals";i:5;s:11:"Preferences";}',
+      addCases: 1,
+      editCases: 1,
+      deleteCases: 1,
+      viewOthers: 1,
+      writesJournals: 1,
+      readsJournals: 1,
     },
   });
 
-  console.log('✓ Groups created');
+  // 3. Paralegal - Legal support staff
+  const paralegalGroup = await prisma.group.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      groupName: 'paralegal',
+      displayName: 'Paralegal',
+      description: 'Certified paralegals and legal assistants',
+      allowedTabs: 'a:6:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Board";i:3;s:8:"Messages";i:4;s:8:"Journals";i:5;s:11:"Preferences";}',
+      addCases: 1,
+      editCases: 1,
+      deleteCases: 0,
+      viewOthers: 1,
+      writesJournals: 1,
+      readsJournals: 1,
+    },
+  });
 
-  // Create sample users
-  console.log('Creating users...');
+  // 4. Intern - Students and interns
+  const internGroup = await prisma.group.upsert({
+    where: { id: 4 },
+    update: {},
+    create: {
+      groupName: 'intern',
+      displayName: 'Intern',
+      description: 'Law students, clinical students, interns',
+      allowedTabs: 'a:5:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Board";i:3;s:8:"Messages";i:4;s:8:"Journals";}',
+      addCases: 0,
+      editCases: 1,
+      deleteCases: 0,
+      viewOthers: 0,
+      writesJournals: 1,
+      readsJournals: 0,
+    },
+  });
+
+  // 5. Staff - Administrative staff
+  const staffGroup = await prisma.group.upsert({
+    where: { id: 5 },
+    update: {},
+    create: {
+      groupName: 'staff',
+      displayName: 'Staff',
+      description: 'Administrative and support staff',
+      allowedTabs: 'a:5:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Board";i:3;s:8:"Messages";i:4;s:11:"Preferences";}',
+      addCases: 1,
+      editCases: 0,
+      deleteCases: 0,
+      viewOthers: 1,
+      writesJournals: 1,
+      readsJournals: 0,
+    },
+  });
+
+  console.log('✓ User types created');
+
+  // Create sample users with various type+ability combinations
+  console.log('Creating sample users...');
+  
+  // Admin user - Type: admin (has all abilities by default)
   const adminUser = await prisma.user.upsert({
     where: { username: 'admin' },
     update: {
       password: '$2b$10$Mh25XYl6HfCgdPCQUKR4CuMXycarsvwzzJwYgqtK57w8KFnz7Zv3i', // password: admin
+      grp: 'admin',
     },
     create: {
       username: 'admin',
@@ -63,7 +135,71 @@ async function main() {
     },
   });
 
-  console.log('✓ Users created');
+  // Attorney with research ability
+  const attorneyUser = await prisma.user.upsert({
+    where: { username: 'jdoe' },
+    update: {},
+    create: {
+      username: 'jdoe',
+      password: '$2b$10$Mh25XYl6HfCgdPCQUKR4CuMXycarsvwzzJwYgqtK57w8KFnz7Zv3i', // password: admin
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'jdoe@cliniccases.test',
+      grp: 'attorney,researcher', // Type + abilities
+      status: 'active',
+      dateCreated: new Date(),
+    },
+  });
+
+  // Paralegal with clerk and investigator abilities
+  const paralegalUser = await prisma.user.upsert({
+    where: { username: 'msmith' },
+    update: {},
+    create: {
+      username: 'msmith',
+      password: '$2b$10$Mh25XYl6HfCgdPCQUKR4CuMXycarsvwzzJwYgqtK57w8KFnz7Zv3i', // password: admin
+      firstName: 'Maria',
+      lastName: 'Smith',
+      email: 'msmith@cliniccases.test',
+      grp: 'paralegal,clerk,investigator', // Type + abilities
+      status: 'active',
+      dateCreated: new Date(),
+    },
+  });
+
+  // Intern with researcher ability
+  const internUser = await prisma.user.upsert({
+    where: { username: 'sjones' },
+    update: {},
+    create: {
+      username: 'sjones',
+      password: '$2b$10$Mh25XYl6HfCgdPCQUKR4CuMXycarsvwzzJwYgqtK57w8KFnz7Zv3i', // password: admin
+      firstName: 'Sarah',
+      lastName: 'Jones',
+      email: 'sjones@cliniccases.test',
+      grp: 'intern,researcher,investigator', // Type + abilities
+      status: 'active',
+      dateCreated: new Date(),
+    },
+  });
+
+  // Staff with clerk ability
+  const staffUser = await prisma.user.upsert({
+    where: { username: 'bwilson' },
+    update: {},
+    create: {
+      username: 'bwilson',
+      password: '$2b$10$Mh25XYl6HfCgdPCQUKR4CuMXycarsvwzzJwYgqtK57w8KFnz7Zv3i', // password: admin
+      firstName: 'Bob',
+      lastName: 'Wilson',
+      email: 'bwilson@cliniccases.test',
+      grp: 'staff,clerk', // Type + abilities
+      status: 'active',
+      dateCreated: new Date(),
+    },
+  });
+
+  console.log('✓ Sample users created');
 
   // Create sample case types
   console.log('Creating case types...');
@@ -195,15 +331,37 @@ Start documenting your journey today by creating your first journal entry!`,
   console.log('');
   console.log('✅ Seed complete!');
   console.log('');
-  console.log('Sample data created:');
-  console.log(`  - Admin user: admin (password: admin)`);
+  console.log('📋 User Types Created:');
+  console.log('  1. admin - Administrators');
+  console.log('  2. attorney - Licensed Attorneys');
+  console.log('  3. paralegal - Paralegals');
+  console.log('  4. intern - Students/Interns');
+  console.log('  5. staff - Administrative Staff');
+  console.log('');
+  console.log('👥 Sample Users (all passwords: admin):');
+  console.log('  - admin (Administrator)');
+  console.log('  - jdoe (Attorney + Researcher)');
+  console.log('  - msmith (Paralegal + Clerk + Investigator)');
+  console.log('  - sjones (Intern + Researcher + Investigator)');
+  console.log('  - bwilson (Staff + Clerk)');
+  console.log('');
+  console.log('📦 Sample Data:');
   console.log(`  - Sample case: ${sampleCase.caseNumber} - ${sampleCase.firstName} ${sampleCase.lastName}`);
-  console.log(`  - System journal for admin user`);
+  console.log(`  - System journals for all users`);
+  console.log('');
+  console.log('🔧 Functional Abilities:');
+  console.log('  - researcher: Legal research tools');
+  console.log('  - investigator: Fact investigation tools');
+  console.log('  - clerk: Court filing tools');
+  console.log('  - staff: Administrative support');
+  console.log('  - attorney: Legal practice (auto with attorney type)');
+  console.log('  - admin: System administration (auto with admin type)');
   console.log('');
   console.log('Next steps:');
   console.log('  - Run "npm run dev" to start the development server');
-  console.log('  - Visit http://localhost:3000/api/cases to see the API response');
-  console.log('  - Run "npx prisma studio" to explore the database');
+  console.log('  - Login with any username above (password: admin)');
+  console.log('  - Check USER_ROLES_RESTRUCTURED.md for role details');
+  console.log('  - Run "node scripts/check-roles.js" to see role details');
 }
 
 main()

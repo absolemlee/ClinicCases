@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { 
+  getUserType, 
+  getUserAbilities, 
+  getUserTypeDisplay,
+  getAbilityDisplay,
+  getAbilityIcon,
+  type UserType,
+  type Ability
+} from '@/lib/permissions-client';
 
 interface User {
   id: number;
@@ -103,147 +112,193 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 p-8">
-        <div className="text-center text-gray-400">Loading users...</div>
+      <div className="space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">User Management</h1>
+        <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-12 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+          <p className="mt-4 text-slate-400">Loading users...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 p-8">
-        <div className="text-center text-red-400">Error: {error}</div>
+      <div className="space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">User Management</h1>
+        <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-200">
+          <p className="font-semibold">Error loading users</p>
+          <p className="mt-1 text-sm">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-white">User Management</h1>
-          <Link
-            href="/users/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Add New User
-          </Link>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">User Management</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Manage user accounts and permissions
+          </p>
         </div>
+        <Link
+          href="/users/new"
+          className="w-full sm:w-auto text-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+        >
+          Add New User
+        </Link>
+      </div>
 
-        {/* Status Filter */}
-        <div className="mb-6 flex space-x-2">
-          <button
-            onClick={() => setStatusFilter('all')}
-            className={`px-4 py-2 rounded ${
-              statusFilter === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            All Users ({users.length})
-          </button>
-          <button
-            onClick={() => setStatusFilter('active')}
-            className={`px-4 py-2 rounded ${
-              statusFilter === 'active'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            Active ({users.filter((u) => u.status === 'active').length})
-          </button>
-          <button
-            onClick={() => setStatusFilter('inactive')}
-            className={`px-4 py-2 rounded ${
-              statusFilter === 'inactive'
-                ? 'bg-yellow-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            Inactive ({users.filter((u) => u.status === 'inactive').length})
-          </button>
-        </div>
+      {/* Status Filter */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setStatusFilter('all')}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            statusFilter === 'all'
+              ? 'bg-brand-500 text-white'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+          }`}
+        >
+          All Users ({users.length})
+        </button>
+        <button
+          onClick={() => setStatusFilter('active')}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            statusFilter === 'active'
+              ? 'bg-brand-500 text-white'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+          }`}
+        >
+          Active ({users.filter((u) => u.status === 'active').length})
+        </button>
+        <button
+          onClick={() => setStatusFilter('inactive')}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            statusFilter === 'inactive'
+              ? 'bg-brand-500 text-white'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+          }`}
+        >
+          Inactive ({users.filter((u) => u.status === 'inactive').length})
+        </button>
+      </div>
 
-        {/* Users Table */}
-        <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+      {/* Users Table */}
+        <div className="bg-slate-800/40 rounded-lg border border-slate-700 shadow-lg overflow-hidden">
           {filteredUsers.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">
+            <div className="p-8 text-center text-slate-400">
               No users found
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-gray-900">
+            <table className="min-w-full divide-y divide-slate-700">
+              <thead className="bg-slate-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Name
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                    User Info
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Username
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                    User Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Email
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                    Functional Abilities
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Group
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-gray-800 divide-y divide-gray-700">
-                {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {user.firstName} {user.lastName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {user.username}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {user.email || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {user.grp || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 text-xs rounded ${
-                          user.status === 'active'
-                            ? 'bg-green-900 text-green-200'
-                            : 'bg-yellow-900 text-yellow-200'
-                        }`}
-                      >
-                        {user.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleStatusToggle(user.id, user.status)}
-                          className="text-blue-400 hover:text-blue-300"
+              <tbody className="bg-slate-800/20 divide-y divide-slate-700">
+                {filteredUsers.map((user) => {
+                  const userType = getUserType({ grp: user.grp });
+                  const abilities = getUserAbilities({ grp: user.grp });
+                  
+                  return (
+                    <tr key={user.id} className="hover:bg-slate-700/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="text-sm font-semibold text-white">
+                            {user.firstName} {user.lastName}
+                          </div>
+                          <div className="text-xs text-slate-400 mt-0.5">
+                            @{user.username}
+                          </div>
+                          {user.email && (
+                            <div className="text-xs text-slate-500 mt-0.5">
+                              {user.email}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {userType ? (
+                          <div className="inline-flex items-center px-3 py-1.5 rounded-lg bg-brand-500/20 border border-brand-500/30">
+                            <span className="text-sm font-medium text-brand-300">
+                              {getUserTypeDisplay(userType)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500">No type assigned</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {abilities.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {abilities.map((ability) => (
+                              <span
+                                key={ability}
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded"
+                                title={getAbilityDisplay(ability)}
+                              >
+                                <span>{getAbilityIcon(ability)}</span>
+                                <span>{ability}</span>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500">Base permissions only</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2.5 py-1 text-xs font-medium rounded-md ${
+                            user.status === 'active'
+                              ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                              : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                          }`}
                         >
-                          {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <Link
-                          href={`/users/${user.id}/edit` as any}
-                          className="text-green-400 hover:text-green-300"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(user.id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {user.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() => handleStatusToggle(user.id, user.status)}
+                            className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                          >
+                            {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                          </button>
+                          <Link
+                            href={`/users/${user.id}/edit` as any}
+                            className="text-brand-400 hover:text-brand-300 font-medium transition-colors"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(user.id)}
+                            className="text-red-400 hover:text-red-300 font-medium transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -266,7 +321,6 @@ export default function UsersPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

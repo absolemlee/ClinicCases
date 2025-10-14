@@ -14,7 +14,7 @@ type CaseData = {
   lastName: string | null;
   notes: Array<{ id: number; username: string; description: string | null; datestamp: Date | null }>;
   contacts: Array<{ id: number; firstName: string | null; lastName: string | null; type: string | null }>;
-  documents: Array<{ id: number; displayName: string | null; extension: string | null }>;
+  documents: Array<{ id: number; displayName: string | null; extension: string | null; timeAdded?: Date; addedBy?: string }>;
   events: Array<{ id: number; task: string | null; start: Date | null; status: string | null }>;
   assignees: Array<{ id: number; username: string; status: string; dateAssigned: Date | null }>;
 };
@@ -37,6 +37,58 @@ export function CaseDetailTabs({
   const [showAddDocument, setShowAddDocument] = useState(false);
   const [showAddEvent, setShowAddEvent] = useState(false);
 
+  const handleDownloadDocument = async (documentId: number, displayName: string | null) => {
+    try {
+      const response = await fetch(`/api/cases/${caseData.id}/documents/${documentId}`);
+      
+      if (!response.ok) {
+        alert('Failed to download document');
+        return;
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = displayName || 'document';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      alert('Failed to download document');
+    }
+  };
+
+  const handleDeleteDocument = async (documentId: number) => {
+    if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/cases/${caseData.id}/documents/${documentId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        onRefresh(); // Refresh the case data to update the documents list
+      } else {
+        alert(data.error || 'Failed to delete document');
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert('Failed to delete document');
+    }
+  };
+
   const tabs = [
     { id: 'overview' as const, label: 'Overview', count: null },
     { id: 'notes' as const, label: 'Notes', count: caseData.notes.length },
@@ -47,15 +99,15 @@ export function CaseDetailTabs({
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Tab Navigation */}
-      <div className="border-b border-slate-700">
-        <nav className="-mb-px flex space-x-8">
+      <div className="border-b border-slate-700 overflow-x-auto">
+        <nav className="-mb-px flex space-x-4 sm:space-x-8">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap border-b-2 py-3 sm:py-4 px-1 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'border-brand-500 text-brand-400'
                   : 'border-transparent text-slate-400 hover:border-slate-600 hover:text-slate-300'
@@ -93,11 +145,11 @@ export function CaseDetailTabs({
 
         {activeTab === 'notes' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-lg font-semibold text-white">Case Notes</h2>
               <button 
                 onClick={() => setShowAddNote(true)}
-                className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600"
+                className="w-full sm:w-auto rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600"
               >
                 + Add Note
               </button>
@@ -135,11 +187,11 @@ export function CaseDetailTabs({
 
         {activeTab === 'contacts' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-lg font-semibold text-white">Contacts</h2>
               <button 
                 onClick={() => setShowAddContact(true)}
-                className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600"
+                className="w-full sm:w-auto rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600"
               >
                 + Add Contact
               </button>
@@ -174,11 +226,11 @@ export function CaseDetailTabs({
 
         {activeTab === 'documents' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-lg font-semibold text-white">Documents</h2>
               <button 
                 onClick={() => setShowAddDocument(true)}
-                className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600"
+                className="w-full sm:w-auto rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600"
               >
                 + Upload
               </button>
@@ -189,19 +241,39 @@ export function CaseDetailTabs({
                 {caseData.documents.map((doc) => (
                   <div
                     key={doc.id}
-                    className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-900/40 p-3"
+                    className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-900/40 p-3 hover:border-slate-600/50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="rounded bg-slate-700 px-2 py-1 text-xs font-mono text-slate-300">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="rounded bg-slate-700 px-2 py-1 text-xs font-mono text-slate-300 uppercase shrink-0">
                         {doc.extension || 'FILE'}
                       </div>
-                      <p className="text-sm text-slate-200">
-                        {doc.displayName || 'Untitled Document'}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-200 truncate">
+                          {doc.displayName || 'Untitled Document'}
+                        </p>
+                        {(doc.timeAdded || doc.addedBy) && (
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {doc.timeAdded && `Added ${new Date(doc.timeAdded).toLocaleDateString()}`}
+                            {doc.timeAdded && doc.addedBy && ' by '}
+                            {doc.addedBy || ''}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <button className="text-sm text-brand-400 hover:text-brand-300">
-                      Download
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button 
+                        onClick={() => handleDownloadDocument(doc.id, doc.displayName)}
+                        className="text-sm text-brand-400 hover:text-brand-300 px-3 py-1 rounded hover:bg-slate-800 transition-colors"
+                      >
+                        Download
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        className="text-sm text-red-400 hover:text-red-300 px-3 py-1 rounded hover:bg-slate-800 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -213,11 +285,11 @@ export function CaseDetailTabs({
 
         {activeTab === 'events' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-lg font-semibold text-white">Events & Tasks</h2>
               <button 
                 onClick={() => setShowAddEvent(true)}
-                className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600"
+                className="w-full sm:w-auto rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600"
               >
                 + Add Event
               </button>

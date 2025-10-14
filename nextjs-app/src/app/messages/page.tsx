@@ -91,61 +91,73 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 p-8">
-        <div className="text-center text-gray-400">Loading messages...</div>
+      <div className="space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Messages</h1>
+        <div className="rounded-lg border border-slate-700 bg-slate-800/40 p-12 text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+          <p className="mt-4 text-slate-400">Loading messages...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 p-8">
-        <div className="text-center text-red-400">Error: {error}</div>
+      <div className="space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Messages</h1>
+        <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-4 text-red-200">
+          <p className="font-semibold">Error loading messages</p>
+          <p className="mt-1 text-sm">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-white">Messages</h1>
-          <Link
-            href="/messages/compose"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Compose New
-          </Link>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Messages</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Manage your communications
+          </p>
         </div>
+        <Link
+          href="/messages/compose"
+          className="w-full sm:w-auto text-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+        >
+          Compose New
+        </Link>
+      </div>
 
-        {/* Folder Navigation */}
-        <div className="mb-6 flex space-x-2">
+      {/* Folder Navigation */}
+      <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFolder('inbox')}
-            className={`px-4 py-2 rounded ${
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               folder === 'inbox'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-brand-500 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
             Inbox
           </button>
           <button
             onClick={() => setFolder('sent')}
-            className={`px-4 py-2 rounded ${
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               folder === 'sent'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-brand-500 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
             Sent
           </button>
           <button
             onClick={() => setFolder('archived')}
-            className={`px-4 py-2 rounded ${
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               folder === 'archived'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-brand-500 text-white'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
             Archived
@@ -230,7 +242,6 @@ export default function MessagesPage() {
             </table>
           )}
         </div>
-      </div>
     </div>
   );
 }
