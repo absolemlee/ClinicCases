@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CaseListTable } from '@/components/cases/CaseListTable';
 import { CaseFilters } from '@/components/cases/CaseFilters';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export type CaseWithDetails = {
   id: number;
@@ -23,6 +24,7 @@ export default function CasesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'open' | 'closed'>('all');
+  const { permissions, loading: permissionsLoading } = usePermissions();
 
   useEffect(() => {
     fetchCases();
@@ -59,12 +61,14 @@ export default function CasesPage() {
             Manage and track client cases
           </p>
         </div>
-        <Link
-          href="/cases/new"
-          className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
-        >
-          + New Case
-        </Link>
+        {permissions.addCases && (
+          <Link
+            href="/cases/new"
+            className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+          >
+            + New Case
+          </Link>
+        )}
       </div>
 
       {/* Filters */}

@@ -16,7 +16,7 @@ type CaseDetail = {
   dateOpen: string | null;
   dateClose: string | null;
   openedBy: string | null;
-  assignees: Array<{ username: string; status: string; dateAssigned: Date | null }>;
+  assignees: Array<{ id: number; username: string; status: string; dateAssigned: Date | null }>;
   notes: Array<{ id: number; username: string; description: string | null; datestamp: Date | null }>;
   contacts: Array<{ id: number; firstName: string | null; lastName: string | null; type: string | null }>;
   documents: Array<{ id: number; displayName: string | null; extension: string | null }>;
@@ -30,7 +30,7 @@ export default function CaseDetailPage() {
   const [caseData, setCaseData] = useState<CaseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'contacts' | 'documents' | 'events'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'contacts' | 'documents' | 'events' | 'assignments'>('overview');
 
   useEffect(() => {
     if (caseId) {

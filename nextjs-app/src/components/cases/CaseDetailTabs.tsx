@@ -5,6 +5,7 @@ import { AddNoteModal } from './AddNoteModal';
 import { AddContactModal } from './AddContactModal';
 import { AddDocumentModal } from './AddDocumentModal';
 import { AddEventModal } from './AddEventModal';
+import { CaseAssignments } from './CaseAssignments';
 
 type CaseData = {
   id: number;
@@ -15,12 +16,13 @@ type CaseData = {
   contacts: Array<{ id: number; firstName: string | null; lastName: string | null; type: string | null }>;
   documents: Array<{ id: number; displayName: string | null; extension: string | null }>;
   events: Array<{ id: number; task: string | null; start: Date | null; status: string | null }>;
+  assignees: Array<{ id: number; username: string; status: string; dateAssigned: Date | null }>;
 };
 
 type CaseDetailTabsProps = {
   caseData: CaseData;
-  activeTab: 'overview' | 'notes' | 'contacts' | 'documents' | 'events';
-  onTabChange: (tab: 'overview' | 'notes' | 'contacts' | 'documents' | 'events') => void;
+  activeTab: 'overview' | 'notes' | 'contacts' | 'documents' | 'events' | 'assignments';
+  onTabChange: (tab: 'overview' | 'notes' | 'contacts' | 'documents' | 'events' | 'assignments') => void;
   onRefresh: () => void;
 };
 
@@ -41,6 +43,7 @@ export function CaseDetailTabs({
     { id: 'contacts' as const, label: 'Contacts', count: caseData.contacts.length },
     { id: 'documents' as const, label: 'Documents', count: caseData.documents.length },
     { id: 'events' as const, label: 'Events', count: caseData.events.length },
+    { id: 'assignments' as const, label: 'Assignments', count: caseData.assignees.length },
   ];
 
   return (
@@ -255,6 +258,17 @@ export function CaseDetailTabs({
               <p className="text-center py-8 text-slate-400">No events scheduled yet</p>
             )}
           </div>
+        )}
+
+        {/* Assignments Tab */}
+        {activeTab === 'assignments' && (
+          <CaseAssignments 
+            caseId={caseData.id}
+            initialAssignees={caseData.assignees.map(a => ({
+              ...a,
+              timeAssigned: a.dateAssigned,
+            }))}
+          />
         )}
       </div>
 

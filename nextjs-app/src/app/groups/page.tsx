@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface Group {
   id: number;
@@ -86,12 +87,12 @@ export default function GroupsPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white">Group Management</h1>
-          <button
-            onClick={() => setShowAddModal(true)}
+          <Link
+            href="/groups/new"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Add New Group
-          </button>
+          </Link>
         </div>
 
         {/* Groups Table */}
@@ -159,12 +160,12 @@ export default function GroupsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <div className="flex space-x-2">
-                        <button
-                          onClick={() => setEditingGroup(group)}
+                        <Link
+                          href={`/groups/${group.id}/edit` as any}
                           className="text-green-400 hover:text-green-300"
                         >
                           Edit
-                        </button>
+                        </Link>
                         <button
                           onClick={() => handleDelete(group.id)}
                           className="text-red-400 hover:text-red-300"

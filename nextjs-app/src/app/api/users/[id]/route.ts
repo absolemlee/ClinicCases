@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 // GET /api/users/[id] - Get single user
 export async function GET(
@@ -43,9 +44,9 @@ export async function PATCH(
     const body = await request.json();
     const { password, ...updateData } = body;
 
-    // If password is being updated, it should be hashed in production
+    // If password is being updated, hash it
     const data = password 
-      ? { ...updateData, password }
+      ? { ...updateData, password: await bcrypt.hash(password, 10) }
       : updateData;
 
     const updated = await prisma.user.update({

@@ -18,7 +18,7 @@ interface ClinicType {
 export default function UtilitiesPage() {
   const [caseTypes, setCaseTypes] = useState<CaseType[]>([]);
   const [clinicTypes, setClinicTypes] = useState<ClinicType[]>([]);
-  const [activeTab, setActiveTab] = useState<'case-types' | 'clinic-types' | 'system'>('case-types');
+  const [activeTab, setActiveTab] = useState<'case-types' | 'clinic-types' | 'case-columns' | 'system'>('case-types');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -89,6 +89,16 @@ export default function UtilitiesPage() {
               }`}
             >
               Clinic Types
+            </button>
+            <button
+              onClick={() => setActiveTab('case-columns')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'case-columns'
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+              }`}
+            >
+              Case Columns
             </button>
             <button
               onClick={() => setActiveTab('system')}
@@ -194,6 +204,41 @@ export default function UtilitiesPage() {
                 </tbody>
               </table>
             )}
+          </div>
+        )}
+
+        {/* Case Columns Tab */}
+        {activeTab === 'case-columns' && (
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-semibold text-white">Case Form Columns</h2>
+                <p className="text-sm text-gray-400 mt-1">
+                  Configure dynamic form fields for case creation
+                </p>
+              </div>
+              <div className="space-x-2">
+                <Link
+                  href="/cases/new-dynamic"
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 inline-block"
+                >
+                  Preview Dynamic Form
+                </Link>
+                <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                  Add Column
+                </button>
+              </div>
+            </div>
+            <div className="text-center text-gray-400 py-8">
+              <p className="mb-4">Dynamic case column management available in this interface.</p>
+              <p className="text-sm">
+                The <code className="bg-gray-900 px-2 py-1 rounded">cm_columns</code> table controls which
+                fields appear in the case form.
+              </p>
+              <p className="text-sm mt-2">
+                Use the "Preview Dynamic Form" button to see the dynamically generated form.
+              </p>
+            </div>
           </div>
         )}
 

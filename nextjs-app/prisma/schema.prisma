@@ -211,9 +211,11 @@ model User {
   prefCase         String?   @default("on")
   prefJournal      String?   @default("on")
   prefCaseProf     String?   @default("on")
-  evals            String?
-  privateKey       String?
-  forceNewPassword Int?      @default(0)
+  evals              String?
+  privateKey         String?
+  forceNewPassword   Int?      @default(0)
+  resetToken         String?
+  resetTokenExpiry   DateTime?
 
   @@map("cm_users")
 }

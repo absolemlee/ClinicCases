@@ -122,12 +122,12 @@ export default function UsersPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white">User Management</h1>
-          <button
-            onClick={() => setShowAddModal(true)}
+          <Link
+            href="/users/new"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Add New User
-          </button>
+          </Link>
         </div>
 
         {/* Status Filter */}

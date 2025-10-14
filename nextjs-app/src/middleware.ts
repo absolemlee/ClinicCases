@@ -5,9 +5,10 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const isOnLoginPage = req.nextUrl.pathname.startsWith("/login");
   const isOnApiAuthRoute = req.nextUrl.pathname.startsWith("/api/auth");
+  const isOnPasswordResetPage = req.nextUrl.pathname.startsWith("/password-reset");
 
-  // Allow access to login page and auth API routes
-  if (isOnLoginPage || isOnApiAuthRoute) {
+  // Allow access to login page, password reset pages, and auth API routes
+  if (isOnLoginPage || isOnApiAuthRoute || isOnPasswordResetPage) {
     return NextResponse.next();
   }
 
