@@ -1,0 +1,9 @@
+/node_modules
+/.next
+/dist
+.env*
+
+# Editor directories and files
+/.idea
+/.vscode
+.DS_Store
