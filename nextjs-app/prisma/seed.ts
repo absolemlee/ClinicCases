@@ -9,7 +9,10 @@ async function main() {
   console.log('Creating groups...');
   const adminGroup = await prisma.group.upsert({
     where: { id: 1 },
-    update: {},
+    update: {
+      writesJournals: 1,
+      readsJournals: 1,
+    },
     create: {
       groupName: 'admin',
       displayName: 'Administrators',
@@ -19,6 +22,8 @@ async function main() {
       editCases: 1,
       deleteCases: 1,
       viewOthers: 1,
+      writesJournals: 1,
+      readsJournals: 1,
     },
   });
 
