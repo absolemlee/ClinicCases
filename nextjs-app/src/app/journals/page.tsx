@@ -52,12 +52,12 @@ export default function JournalsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
+      {/* Header - Mobile responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-white">Journals</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Journals</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">
             {permissions.writesJournals && 'Write and manage your journals'}
             {permissions.readsJournals && 'Read and comment on student journals'}
             {!permissions.writesJournals && !permissions.readsJournals && 'View journals'}
@@ -66,18 +66,18 @@ export default function JournalsPage() {
         {permissions.writesJournals && (
           <Link
             href="/journals/new"
-            className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+            className="w-full sm:w-auto text-center rounded-lg bg-brand-500 px-4 py-2.5 sm:py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
           >
             + New Journal
           </Link>
         )}
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-2 border-b border-slate-700 pb-4">
+      {/* Filters - Scrollable on mobile */}
+      <div className="flex items-center gap-2 border-b border-slate-700 pb-3 sm:pb-4 overflow-x-auto">
         <button
           onClick={() => setFilter('unread')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
             filter === 'unread'
               ? 'bg-brand-500 text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-700'
@@ -87,7 +87,7 @@ export default function JournalsPage() {
         </button>
         <button
           onClick={() => setFilter('read')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
             filter === 'read'
               ? 'bg-brand-500 text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-700'
@@ -97,7 +97,7 @@ export default function JournalsPage() {
         </button>
         <button
           onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
             filter === 'all'
               ? 'bg-brand-500 text-white'
               : 'text-slate-400 hover:text-white hover:bg-slate-700'
