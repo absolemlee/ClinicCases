@@ -193,7 +193,7 @@ export async function sendWelcomeEmail(
   }
 
   try {
-    const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/login`;
+    const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:7676'}/login`;
     
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'ClinicCases <onboarding@resend.dev>',

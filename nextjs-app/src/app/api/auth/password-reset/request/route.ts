@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       });
 
       // Send password reset email via Resend API (HTTPS - no SMTP required)
-      const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/password-reset/reset?token=${resetToken}`;
+      const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:7676'}/password-reset/reset?token=${resetToken}`;
       
       const emailResult = await sendPasswordResetEmail(
         user.email,
