@@ -29,8 +29,11 @@ if echo "$DATABASE_URL" | grep -qE '^(sqlite:|file:)'; then
   npm run prisma:generate
   
   echo "Running: npm run prisma:migrate"
-  npm run prisma:migrate dev --name init || true
-  
+  npm run prisma:migrate || true
+
+  echo "Running: npm run db:seed"
+  npm run db:seed || true
+
   echo ""
   echo "✓ SQLite provisioning complete!"
   echo "Database file: ${DATABASE_URL#file:}"
@@ -69,10 +72,19 @@ fi
 echo "Copying postgres schema to prisma/schema.prisma..."
 cp prisma/schema.postgres.prisma prisma/schema.prisma
 
+echo "Running: npm run prisma:generate"
+npm run prisma:generate
+
+echo "Running: npx prisma db push"
+npx prisma db push
+
+echo "Running: npm run db:seed"
+npm run db:seed || true
+
 echo ""
 echo "✓ PostgreSQL provisioning complete!"
 echo ""
 echo "Next steps:"
-echo "  1. Run 'npm run prisma:generate' to generate Prisma Client"
-echo "  2. Run 'npm run prisma:migrate' to create tables"
-echo "  3. Run 'npx prisma studio' to explore your database"
+echo "  1. Run 'npm run build' to verify production build"
+echo "  2. Run 'npm run start' to launch on port 7676"
+echo "  3. Run 'npx prisma studio' to inspect data (optional)"

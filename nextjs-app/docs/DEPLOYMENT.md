@@ -22,14 +22,13 @@ npm run prisma:generate
 npm run build
 ```
 
-## 3. Database Migration
+## 3. Database Schema Sync
 
-Use production-safe migration workflow (no dev reset).
-
-Example:
+For the current PostgreSQL flow in this project, apply schema changes with:
 
 ```bash
-npx prisma migrate deploy
+npx prisma db push
+npm run db:seed
 ```
 
 ## 4. Run
@@ -40,12 +39,13 @@ npm run start
 
 ## 5. Post-Deploy Checks
 
-1. Login works
-2. Session persistence works
-3. Password reset emails send
-4. Case creation/edit works
-5. Document upload/download works
-6. Journals and board render and save data
+1. DNS resolves: `dig case.inspecta.pro`
+2. Login works
+3. Session persistence works
+4. Password reset emails send
+5. Case creation/edit works
+6. Document upload/download works
+7. Journals and board render and save data
 
 ## 6. Security Checklist
 

@@ -2,6 +2,39 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const isPostgres = /^(postgres|postgresql):\/\//i.test(process.env.DATABASE_URL ?? '');
+
+function permission(enabled: boolean): boolean | number {
+  if (isPostgres) {
+    return enabled;
+  }
+
+  return enabled ? 1 : 0;
+}
+
+function groupPermissions(input: {
+  addCases: boolean;
+  editCases: boolean;
+  deleteCases: boolean;
+  viewOthers: boolean;
+  writesJournals: boolean;
+  readsJournals: boolean;
+}) {
+  const permissions: Record<string, boolean | number> = {
+    addCases: permission(input.addCases),
+    editCases: permission(input.editCases),
+    deleteCases: permission(input.deleteCases),
+    viewOthers: permission(input.viewOthers),
+  };
+
+  if (!isPostgres) {
+    permissions.writesJournals = permission(input.writesJournals);
+    permissions.readsJournals = permission(input.readsJournals);
+  }
+
+  return permissions;
+}
+
 async function main() {
   console.log('🌱 Starting database seed...');
 
@@ -14,25 +47,29 @@ async function main() {
     update: {
       displayName: 'Administrator',
       description: 'System administrators with full access',
-      writesJournals: 1,
-      readsJournals: 1,
-      addCases: 1,
-      editCases: 1,
-      deleteCases: 1,
-      viewOthers: 1,
-    },
+      ...groupPermissions({
+        addCases: true,
+        editCases: true,
+        deleteCases: true,
+        viewOthers: true,
+        writesJournals: true,
+        readsJournals: true,
+      }),
+    } as any,
     create: {
       groupName: 'admin',
       displayName: 'Administrator',
       description: 'System administrators with full access',
       allowedTabs: 'a:9:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Users";i:3;s:6:"Groups";i:4;s:5:"Board";i:5;s:9:"Utilities";i:6;s:8:"Messages";i:7;s:8:"Journals";i:8;s:11:"Preferences";}',
-      addCases: 1,
-      editCases: 1,
-      deleteCases: 1,
-      viewOthers: 1,
-      writesJournals: 1,
-      readsJournals: 1,
-    },
+      ...groupPermissions({
+        addCases: true,
+        editCases: true,
+        deleteCases: true,
+        viewOthers: true,
+        writesJournals: true,
+        readsJournals: true,
+      }),
+    } as any,
   });
 
   // 2. Attorney - Licensed legal professionals
@@ -42,73 +79,125 @@ async function main() {
       groupName: 'attorney',
       displayName: 'Attorney',
       description: 'Licensed attorneys handling cases',
-    },
+      ...groupPermissions({
+        addCases: true,
+        editCases: true,
+        deleteCases: true,
+        viewOthers: true,
+        writesJournals: true,
+        readsJournals: true,
+      }),
+    } as any,
     create: {
       groupName: 'attorney',
       displayName: 'Attorney',
       description: 'Licensed attorneys handling cases',
       allowedTabs: 'a:6:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Board";i:3;s:8:"Messages";i:4;s:8:"Journals";i:5;s:11:"Preferences";}',
-      addCases: 1,
-      editCases: 1,
-      deleteCases: 1,
-      viewOthers: 1,
-      writesJournals: 1,
-      readsJournals: 1,
-    },
+      ...groupPermissions({
+        addCases: true,
+        editCases: true,
+        deleteCases: true,
+        viewOthers: true,
+        writesJournals: true,
+        readsJournals: true,
+      }),
+    } as any,
   });
 
   // 3. Paralegal - Legal support staff
   const paralegalGroup = await prisma.group.upsert({
     where: { id: 3 },
-    update: {},
+    update: {
+      groupName: 'paralegal',
+      displayName: 'Paralegal',
+      description: 'Certified paralegals and legal assistants',
+      ...groupPermissions({
+        addCases: true,
+        editCases: true,
+        deleteCases: false,
+        viewOthers: true,
+        writesJournals: true,
+        readsJournals: true,
+      }),
+    } as any,
     create: {
       groupName: 'paralegal',
       displayName: 'Paralegal',
       description: 'Certified paralegals and legal assistants',
       allowedTabs: 'a:6:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Board";i:3;s:8:"Messages";i:4;s:8:"Journals";i:5;s:11:"Preferences";}',
-      addCases: 1,
-      editCases: 1,
-      deleteCases: 0,
-      viewOthers: 1,
-      writesJournals: 1,
-      readsJournals: 1,
-    },
+      ...groupPermissions({
+        addCases: true,
+        editCases: true,
+        deleteCases: false,
+        viewOthers: true,
+        writesJournals: true,
+        readsJournals: true,
+      }),
+    } as any,
   });
 
   // 4. Intern - Students and interns
   const internGroup = await prisma.group.upsert({
     where: { id: 4 },
-    update: {},
+    update: {
+      groupName: 'intern',
+      displayName: 'Intern',
+      description: 'Law students, clinical students, interns',
+      ...groupPermissions({
+        addCases: false,
+        editCases: true,
+        deleteCases: false,
+        viewOthers: false,
+        writesJournals: true,
+        readsJournals: false,
+      }),
+    } as any,
     create: {
       groupName: 'intern',
       displayName: 'Intern',
       description: 'Law students, clinical students, interns',
       allowedTabs: 'a:5:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Board";i:3;s:8:"Messages";i:4;s:8:"Journals";}',
-      addCases: 0,
-      editCases: 1,
-      deleteCases: 0,
-      viewOthers: 0,
-      writesJournals: 1,
-      readsJournals: 0,
-    },
+      ...groupPermissions({
+        addCases: false,
+        editCases: true,
+        deleteCases: false,
+        viewOthers: false,
+        writesJournals: true,
+        readsJournals: false,
+      }),
+    } as any,
   });
 
   // 5. Staff - Administrative staff
   const staffGroup = await prisma.group.upsert({
     where: { id: 5 },
-    update: {},
+    update: {
+      groupName: 'staff',
+      displayName: 'Staff',
+      description: 'Administrative and support staff',
+      ...groupPermissions({
+        addCases: true,
+        editCases: false,
+        deleteCases: false,
+        viewOthers: true,
+        writesJournals: true,
+        readsJournals: false,
+      }),
+    } as any,
     create: {
       groupName: 'staff',
       displayName: 'Staff',
       description: 'Administrative and support staff',
       allowedTabs: 'a:5:{i:0;s:4:"Home";i:1;s:5:"Cases";i:2;s:5:"Board";i:3;s:8:"Messages";i:4;s:11:"Preferences";}',
-      addCases: 1,
-      editCases: 0,
-      deleteCases: 0,
-      viewOthers: 1,
-      writesJournals: 1,
-      readsJournals: 0,
-    },
+      ...groupPermissions({
+        addCases: true,
+        editCases: false,
+        deleteCases: false,
+        viewOthers: true,
+        writesJournals: true,
+        readsJournals: false,
+      }),
+    } as any,
   });
 
   console.log('✓ User types created');

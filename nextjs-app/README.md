@@ -37,7 +37,7 @@ npm run dev
 3. Open:
 
 ```text
-http://localhost:3000
+http://localhost:7676
 ```
 
 ## Current Scope (Implemented)
@@ -85,8 +85,11 @@ npm run db:provision
 - `npm run start` - Run production server
 - `npm run lint` - Lint checks
 - `npm run prisma:generate` - Generate Prisma client
-- `npm run prisma:migrate` - Create/apply dev migration
+- `npm run prisma:migrate` - Create/apply dev migration (SQLite-focused)
 - `npm run db:seed` - Seed database
+- `npm run db:provision` - Auto-detect DB type and provision from scratch
+- `npm run db:studio` - Open Prisma Studio to inspect data
+- `npm run clean` - Remove node_modules, build artifacts, and database (prepare for fresh install)
 
 ## Notes
 

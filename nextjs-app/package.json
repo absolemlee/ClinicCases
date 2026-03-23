@@ -11,7 +11,8 @@
     "prisma:migrate": "prisma migrate dev --name init",
     "db:provision": "bash ./scripts/provision_db.sh",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "clean": "bash ./scripts/clean.sh"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

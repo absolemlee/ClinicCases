@@ -45,6 +45,16 @@ npm run db:provision
 
 Alternative Prisma flow:
 
+For PostgreSQL (VPS/production-like):
+
+```bash
+npm run prisma:generate
+npx prisma db push
+npm run db:seed
+```
+
+For SQLite (local dev):
+
 ```bash
 npm run prisma:generate
 npm run prisma:migrate
@@ -82,6 +92,26 @@ npm run build
 
 If `npm run build` fails due missing env vars, ensure `.env` values are set and Prisma client is generated.
 
+## 7. Fresh Install / Hard Reset
+
+If you need to completely wipe the local environment and start fresh:
+
+```bash
+npm run clean
+npm install
+npm run db:provision
+npm run build
+npm run dev
+```
+
+The `clean` script removes:
+- `node_modules/` (installed packages)
+- `.next/` (build artifacts)
+- `dev.db` (SQLite database file, if present)
+- SQLite temporary files (WAL/SHM)
+
+Note: `.env` is preserved; if you want to reset that too, manually delete it before running `npm install`.
+
 ## Common Issues
 
 1. Prisma client missing
@@ -90,11 +120,18 @@ If `npm run build` fails due missing env vars, ensure `.env` values are set and 
 npm run prisma:generate
 ```
 
-2. SQLite migration mismatch
+2. Provider mismatch (SQLite vs PostgreSQL)
+
+If you switch `DATABASE_URL` provider, reprovision so the active Prisma schema matches your DB:
 
 ```bash
-rm -f dev.db
 npm run db:provision
+```
+
+For PostgreSQL specifically, use schema sync instead of `prisma migrate dev`:
+
+```bash
+npx prisma db push
 ```
 
 3. Auth errors
