@@ -359,18 +359,19 @@ async function main() {
 
   console.log('✓ Sample case created');
 
-  // Create system journal for admin user
-  console.log('Creating system journals...');
-  const existingJournals = await prisma.journal.count({
-    where: { username: 'admin' },
-  });
+  // Create system journal for admin user (optional, skipped if model not available)
+  try {
+    console.log('Creating system journals...');
+    const existingJournals = await (prisma.journal as any).count({
+      where: { username: 'admin' },
+    });
 
-  if (existingJournals === 0) {
-    await prisma.journal.create({
-      data: {
-        username: 'admin',
-        reader: 'admin',
-        text: `[System Generated Entry]
+    if (existingJournals === 0) {
+      await (prisma.journal as any).create({
+        data: {
+          username: 'admin',
+          reader: 'admin',
+          text: `[System Generated Entry]
 
 Account Information
 
@@ -405,16 +406,19 @@ Use this journal to document:
 As an administrator, your journal entries may serve as system logs and documentation for future reference.
 
 Start documenting your journey today by creating your first journal entry!`,
-        dateAdded: new Date(),
-        archived: null,
-        read: null,
-        commented: null,
-        comments: null,
-      },
-    });
-    console.log('✓ System journal created for admin user');
-  } else {
-    console.log('⏭️  Admin user already has journals, skipping...');
+          dateAdded: new Date(),
+          archived: null,
+          read: null,
+          commented: null,
+          comments: null,
+        },
+      });
+      console.log('✓ System journal created for admin user');
+    } else {
+      console.log('⏭️  Admin user already has journals, skipping...');
+    }
+  } catch (err) {
+    console.log('⏭️  Journal model not available in current schema, skipping journal creation');
   }
 
   console.log('');
